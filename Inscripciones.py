@@ -5,6 +5,10 @@ from tkinter import messagebox
 
 
 
+
+
+
+
 class Inscripciones_2:
     def __init__(self, master=None):
          # Ventana principal
