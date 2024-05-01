@@ -525,7 +525,11 @@ class Inscripciones_2:
         
             
 
-                
+# Comentario prueba para ver como funciona git                
+# Comentario prueba para ver como funciona git                
+# Comentario prueba para ver como funciona git                
+# Comentario prueba para ver como funciona git                
+# Comentario prueba para ver como funciona git                
             
             
 
