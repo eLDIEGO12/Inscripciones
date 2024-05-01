@@ -4,6 +4,10 @@ import sqlite3 as sql
 from tkinter import messagebox
 
 
+
+
+
+
 class Inscripciones_2:
     def __init__(self, master=None):
          # Ventana principal
@@ -89,20 +93,24 @@ class Inscripciones_2:
         #Botón Guardar
         self.btnGuardar = ttk.Button(self.frm_1, name="btnguardar",command= self.guardar_inscritos)
         self.btnGuardar.configure(text='Guardar')
-        self.btnGuardar.place(anchor="nw", x=200, y=260)
+        self.btnGuardar.place(anchor="nw", x=150, y=260)
         
         #Botón Editar
         self.btnEditar = ttk.Button(self.frm_1, name="btneditar")
         self.btnEditar.configure(text='Editar')
-        self.btnEditar.place(anchor="nw", x=300, y=260)
+        self.btnEditar.place(anchor="nw", x=250, y=260)
         #Botón Eliminar
         self.btnEliminar = ttk.Button(self.frm_1, name="btneliminar")
         self.btnEliminar.configure(text='Eliminar')
-        self.btnEliminar.place(anchor="nw", x=400, y=260)
+        self.btnEliminar.place(anchor="nw", x=350, y=260)
         #Botón Cancelar
         self.btnCancelar = ttk.Button(self.frm_1, name="btncancelar")
         self.btnCancelar.configure(text='Cancelar')
-        self.btnCancelar.place(anchor="nw", x=500, y=260)
+        self.btnCancelar.place(anchor="nw", x=450, y=260)
+        #Botón Consultar
+        self.btnConsultar= ttk.Button(self.frm_1, name="btnconsultar",command = self.consultar)
+        self.btnConsultar.configure(text='Consultar')
+        self.btnConsultar.place(anchor="nw", x=550, y=260)
         #Separador
         separator1 = ttk.Separator(self.frm_1)
         separator1.configure(orient="horizontal")
@@ -113,14 +121,16 @@ class Inscripciones_2:
         self.tView = ttk.Treeview(self.frm_1, name="tview")
         self.tView.configure(selectmode="extended")
         #Columnas del Treeview
-        self.tView_cols = ['tV_descripción']
-        self.tView_dcols = ['tV_descripción']
+        self.tView_cols = ['tV_descripción','horas']
+        self.tView_dcols = ['tV_descripción','horas']
         self.tView.configure(columns=self.tView_cols,displaycolumns=self.tView_dcols)
         self.tView.column("#0",anchor="w",stretch=True,width=10,minwidth=10)
         self.tView.column("tV_descripción",anchor="w",stretch=True,width=200,minwidth=50)
+        self.tView.column("horas",anchor="w",stretch=True,width=200,minwidth=50)
         #Cabeceras
         self.tView.heading("#0", anchor="w", text='Curso')
         self.tView.heading("tV_descripción", anchor="w", text='Descripción')
+        self.tView.heading("horas", anchor="w", text='Numero de Horas')
         self.tView.place(anchor="nw", height=300, width=790, x=4, y=300)
         #Scrollbars
         self.scroll_H = ttk.Scrollbar(self.frm_1, name="scroll_h")
@@ -134,7 +144,7 @@ class Inscripciones_2:
 
         # Main widget
         self.mainwindow = self.win
-        self.mainwindow.iconbitmap('img/picachu.ico') # como estamos trabajando en el mismo directorio, puedo acceder directamente a la carpeta que almacena la img
+        #self.mainwindow.iconbitmap('img/picachu.ico') # como estamos trabajando en el mismo directorio, puedo acceder directamente a la carpeta que almacena la img
 
         #Combobox Alumno
         self.cmbx_Id_Alumno = ttk.Combobox(self.frm_1, name="cmbx_id_alumno")
@@ -174,9 +184,6 @@ class Inscripciones_2:
           #al seleccionar algun id de la lista desplegable llena los entrys apellidos nombres y apellidos 
         self.cmbx_Id_Alumno.bind("<<ComboboxSelected>>", self.mostrar_info_alumno) 
         #-----------------------------------------------------------------------------------
-        
-
-        self.tView.bind("<<TreeviewSelect>>", self.mostrar_info_cursos)
 
 
         #-----------------------------------------------------------------------------------
@@ -188,9 +195,9 @@ class Inscripciones_2:
 
         #---------------------------------------------
           #codigo compañero***
-        self.fecha.bind("<Key>", self.validar_fecha)
+        self.fecha.bind("<FocusOut>", self.validar_fecha)
         #-----------------------------------------------
-        
+        self.validar_Tview()
 
 
 
@@ -383,10 +390,12 @@ class Inscripciones_2:
         id_alumno = self.cmbx_Id_Alumno.get()
         fecha = self.fecha.get()
         codigo_curso = self.id_Curso.get()
+        curso = self.descripc_Curso.get()
+        horario = self.horario.get()
 
         if self.validar_campos_completos(id_alumno,fecha,codigo_curso):
-            sql2 = f""" INSERT INTO Inscritos(Id_Alumno,Fecha_Inscripcion,Codigo_Curso)
-            VALUES('{id_alumno}','{fecha}','{codigo_curso}') """
+            sql2 = f""" INSERT INTO Inscritos(Id_Alumno,Fecha_Inscripcion,Codigo_Curso,Curso,Horario)
+            VALUES('{id_alumno}','{fecha}','{codigo_curso}','{curso}','{horario}') """
 
             if self.validar_doble_inscripcion(id_alumno,codigo_curso):
                 messagebox.showerror("Guardar Inscripcion", f"ERROR, el/la estudiante: {self.apellidos.get()} ya tiene inscrita la materia: {self.descripc_Curso.get() }.") 
@@ -464,13 +473,14 @@ class Inscripciones_2:
 
     def mostrar_info_cursos(self,event):
         # Obtener el índice seleccionado
-        selected_item = self.tView.selection()[0]
-        # Obtener los valores de la fila seleccionada
-        # Rellenar los campos de entrada
-        self.id_Curso.delete(0, tk.END)
-        self.id_Curso.insert(0, self.tView.item(selected_item)['text'])  # Suponiendo que el primer valor es para entry1
-        self.descripc_Curso.delete(0, tk.END)
-        self.descripc_Curso.insert(0, self.tView.item(selected_item)['values'][0])# Suponiendo que el segundo valor es para en
+        if self.tView.selection():
+            selected_item = self.tView.selection()[0]
+            # Obtener los valores de la fila seleccionada
+            # Rellenar los campos de entrada
+            self.id_Curso.delete(0, 'end')
+            self.id_Curso.insert(0, self.tView.item(selected_item)['text'])  
+            self.descripc_Curso.delete(0, 'end')
+            self.descripc_Curso.insert(0, self.tView.item(selected_item)['values'][0])
     
     def validar_entry(self,funcion):
         return len(funcion.get()) != 0
@@ -488,33 +498,96 @@ class Inscripciones_2:
     
 #------------------------------------------------------------------------------------------------------------------------------------------   
     #estudiar codigo de compañero***
-    
-
-
-#------------------------------------------------------------------------------------------------------------------------------------------
-          
-
-#-----------------------------------------------------------------------------------------------
     def validar_fecha(self, event):
         fecha = self.fecha.get()
-        largo = len(fecha)
 
-        # Si el usuario ingresó el día y aún no ha ingresado el mes, agregar automáticamente el '/'
-        if largo == 2 and event.char != "/":
-            self.fecha.insert(tk.END, "/")
-        # Si el usuario ingresó el mes y aún no ha ingresado el año, agregar automáticamente el '/'
-        elif largo == 5 and event.char != "/":
-            self.fecha.insert(tk.END, "/")
-
-        # Validación de la fecha
         if self.validar_formato_fecha(fecha):
-            pass
+            dias_por_mes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]# Lista con los días máximos permitidos por mes
+            
+            dia, mes, year = map(int, fecha.split('/'))
+
+            # Verificar si es un año bisiesto
+            if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
+                dias_por_mes[1] = 29  # Febrero tiene 29 días en año bisiesto
+
+            # Verificar si el mes es válido
+            if mes < 1 or mes > 12:
+                print("El mes es inválido.")
+
+            # Verificar si el día es válido
+            if dia < 1 or dia > dias_por_mes[mes - 1]:
+                print("El día es inválido.")
         else:
-            messagebox('validacion Fecha',"Formato de fecha inválido")
+            print("Formato de fecha invalido, recuerde que el formato debe ser DD/MM/AAA")
+
 
     def validar_formato_fecha(self, fecha):
-        # Implementa tu lógica de validación de fecha aquí
-        return True  # Por ahora, siempre devuelve True para la demostración
+        # Verificar si la fecha tiene el formato correcto (DD/MM/YYYY)
+        if len(fecha) != 10 or fecha[2] != '/' or fecha[5] != '/':
+            return False
+
+        # Verificar si los componentes de la fecha son números
+        try:
+            dia, mes, year = map(int, fecha.split('/'))
+        except ValueError:
+            return False
+
+        # Verificar si el año es un número de 4 dígitos
+        if len(str(year)) != 4:
+            return False
+
+        return True
+#------------------------------------------------------------------------------------------------------------------------------------------
+
+    def limpiar_columnas_tView(self):
+         for column in self.tView.get_children():
+            self.tView.delete(column)
+         self.tView_cols = ()
+         self.tView_dcols = ()
+
+    def columnas_consultar(self, nuevas_columnas):
+        # Agregar nuevas columnas al Treeview
+        self.limpiar_columnas_tView()
+        self.tView_cols = (nuevas_columnas)
+        self.tView_dcols = (nuevas_columnas)
+        self.tView.configure(columns=self.tView_cols,displaycolumns=self.tView_dcols)
+        for col in self.tView_cols:
+            self.tView.heading(col, anchor="w", text=(f'{col}'))
+            self.tView.column(col, anchor="center", width=100)
+
+    def mostrar_Inscritos(self):
+        self.limpia_TreeView()
+        #Seleccionar los datos de la BD
+        #parametros = (self.id_Curso.get(),)
+        query = """SELECT * FROM Inscritos ORDER BY Codigo_Curso DESC"""
+        db_ColumnasCursos = self.ejecutar_consulta(query)
+
+        #Insertar los datos en la tabla de la pantalla
+        for row in db_ColumnasCursos:
+            self.tView.insert('',0,text= row[3],values = [row[1],row[4],row[5]])
+            print(row)
+
+    def consultar(self):
+        for item in self.tView.get_children():
+            self.tView.delete(item)
+        
+        # Llenar el TreeView con información de inscritos
+        columas_inscritos=('ID del estudiante','Curso','Horario')
+        #self.limpiar_columnas_tview()
+        self.columnas_consultar(columas_inscritos)        
+        self.mostrar_Inscritos()
+
+    def validar_Tview(self):
+        
+        num_filas = len(self.tView.get_children())
+        if num_filas > 3:
+            self.tView.bind("<<TreeviewSelect>>", self.mostrar_Inscritos)
+
+        else: 
+            self.tView.bind("<<TreeviewSelect>>", self.mostrar_info_cursos)
+
+
+
 
 
 
@@ -525,11 +598,7 @@ class Inscripciones_2:
         
             
 
-# Comentario prueba para ver como funciona git                
-# Comentario prueba para ver como funciona git                
-# Comentario prueba para ver como funciona git                
-# Comentario prueba para ver como funciona git                
-# Comentario prueba para ver como funciona git                
+                
             
             
 
