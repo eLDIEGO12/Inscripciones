@@ -37,6 +37,7 @@ class Inscripciones_2:
         self.lblFecha.place(anchor="nw", x=630, y=80)
         #Entry Fecha
         self.fecha = ttk.Entry(self.frm_1, name="fecha")
+        self.fecha.insert(0,"dd/mm/aaaa") #Inserta el texto por defecto "dd/mm/aaaa"
         self.fecha.configure(justify="center")
         self.fecha.place(anchor="nw", width=90, x=680, y=80)
         #Label Alumno
@@ -100,6 +101,7 @@ class Inscripciones_2:
         self.btnEditar.configure(text='Editar')
         self.btnEditar.place(anchor="nw", x=250, y=260)
         #Botón Eliminar
+        self.btnEliminar = ttk.Button(self.frm_1, name="btneliminar", command= self.eliminar_inscripcion)
         self.btnEliminar = ttk.Button(self.frm_1, name="btneliminar")
         self.btnEliminar.configure(text='Eliminar')
         self.btnEliminar.place(anchor="nw", x=350, y=260)
@@ -194,9 +196,11 @@ class Inscripciones_2:
 
 
         #---------------------------------------------
-          #codigo compañero***
-        self.fecha.bind("<FocusOut>", self.validar_fecha)
+        self.fecha.bind("<FocusIn>", self.borrar_fecha) #Al hacer click se borra el texto por defect
+        self.fecha.bind("<KeyRelease>", self.autoformateo_de_fecha) #Cuando se va escribiendo se añade el slash automaticamente
+        self.fecha.bind("<FocusOut>", self.validar_fecha) #Cuando se cliquea fuera del recuadro de fecha se valida que esta tenga el formato correcto***
         #-----------------------------------------------
+
         self.validar_Tview()
 
 
@@ -498,45 +502,84 @@ class Inscripciones_2:
     
 #------------------------------------------------------------------------------------------------------------------------------------------   
     #estudiar codigo de compañero***
+    #Funciones para el entry fecha
+    def borrar_fecha(self, event):
+        self.fecha.delete(0, tk.END)
+
     def validar_fecha(self, event):
         fecha = self.fecha.get()
 
         if self.validar_formato_fecha(fecha):
-            dias_por_mes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]# Lista con los días máximos permitidos por mes
+            dias_por_mes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] #Lista con los días máximos permitidos por mes
             
             dia, mes, year = map(int, fecha.split('/'))
 
-            # Verificar si es un año bisiesto
+            #Verificar si es un año bisiesto
             if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
-                dias_por_mes[1] = 29  # Febrero tiene 29 días en año bisiesto
+                dias_por_mes[1] = 29  #Febrero tiene 29 días en año bisiesto
 
-            # Verificar si el mes es válido
+            #Verificar si el mes es válido
             if mes < 1 or mes > 12:
-                print("El mes es inválido.")
-
-            # Verificar si el día es válido
+                messagebox.showerror("Formato de fecha invalido", "El mes es inválido.")
+                return
+            #Verificar si el día es válido
             if dia < 1 or dia > dias_por_mes[mes - 1]:
-                print("El día es inválido.")
+                messagebox.showerror("Formato de fecha invalido", "El dia es inválido.")
+                return
         else:
-            print("Formato de fecha invalido, recuerde que el formato debe ser DD/MM/AAA")
-
+            self.borrar_fecha(None)
+            self.fecha.insert(0,"dd/mm/aaaa")
+            messagebox.showerror("Formato de fecha invalido", "El formato debe ser DD/MM/AAA")
 
     def validar_formato_fecha(self, fecha):
-        # Verificar si la fecha tiene el formato correcto (DD/MM/YYYY)
+        #Verificar si la fecha tiene el formato correcto (DD/MM/YYYY)
         if len(fecha) != 10 or fecha[2] != '/' or fecha[5] != '/':
             return False
 
-        # Verificar si los componentes de la fecha son números
+        #Verificar si los componentes de la fecha son números
         try:
             dia, mes, year = map(int, fecha.split('/'))
         except ValueError:
             return False
 
-        # Verificar si el año es un número de 4 dígitos
+        #Verificar si el año es un número de 4 dígitos
         if len(str(year)) != 4:
             return False
 
         return True
+    
+    def autoformateo_de_fecha(self, event):
+        fecha = self.fecha.get()
+        if len(fecha) == 2 or len(fecha) == 5:
+            self.fecha.insert(len(fecha),"/")
+        if len(fecha) >= 10:
+            self.fecha.delete(10,tk.END)
+    
+#------------------------------------------------------------------------------------------------------------------------------------------
+    #Funciones para el Boton Eliminar
+    def eliminar_inscripcion(self):    
+        #Toma los datos
+        id_alumno = self.cmbx_Id_Alumno.get()
+        codigo_curso = self.id_Curso.get()
+        print(id_alumno)
+        print(codigo_curso)
+
+        #Verifica que los datos esten completos
+        if id_alumno.strip() == "" or codigo_curso.strip() == "":
+            messagebox.showerror("Campos incompletos", "Verifique que los campos id_alumno y id_curso no esten en blanco")
+            return
+        
+        #Si pasa la verificación de campos, verifica que el alumno este en el curso
+        if self.validar_doble_inscripcion(id_alumno,codigo_curso): 
+            try: #Intenta eliminar el alumno
+                sql = f"DELETE FROM Inscritos WHERE Id_Alumno ={id_alumno} AND Codigo_Curso ={codigo_curso}"
+                self.ejecutar_consulta(sql)
+                messagebox.showinfo("Eliminacion Correcta","La inscripción del alumno fue eliminada correctamente")
+                self.limpiar_entrys('4')
+            except Exception  as e: #Si hay un error eliminando el alumno, lo muestra en pantalla
+                messagebox.showerror("Error al eliminar", str(e))
+        else: #El alumno no esta inscrito en el curso
+            messagebox.showerror("Error al eliminar", "El alumno no esta inscrito a este curso")
 #------------------------------------------------------------------------------------------------------------------------------------------
 
     def limpiar_columnas_tView(self):
