@@ -102,7 +102,6 @@ class Inscripciones_2:
         self.btnEditar.place(anchor="nw", x=250, y=260)
         #Botón Eliminar
         self.btnEliminar = ttk.Button(self.frm_1, name="btneliminar", command= self.eliminar_inscripcion)
-        self.btnEliminar = ttk.Button(self.frm_1, name="btneliminar")
         self.btnEliminar.configure(text='Eliminar')
         self.btnEliminar.place(anchor="nw", x=350, y=260)
         #Botón Cancelar
