@@ -1,8 +1,8 @@
-import tkinter as tk 
+import tkinter as tk
 import tkinter.ttk as ttk
 import sqlite3 as sql
 from tkinter import messagebox
-
+import calendar
 
 
 
@@ -525,6 +525,10 @@ class Inscripciones_2:
             if dia < 1 or dia > dias_por_mes[mes - 1]:
                 messagebox.showerror("Formato de fecha invalido", "El dia es inválido.")
                 return
+            #Verificar que el año sea 2024
+            if year != 2024:
+                messagebox.showerror("Formato de fecha invalido", "Solo se admiten incripciones de este año")
+                return
         else:
             self.borrar_fecha(None)
             self.fecha.insert(0,"dd/mm/aaaa")
@@ -549,6 +553,9 @@ class Inscripciones_2:
     
     def autoformateo_de_fecha(self, event):
         fecha = self.fecha.get()
+        print(fecha[-1])
+        if fecha[-1] == " ":
+            self.fecha.delete(len(fecha)-1, tk.END)
         if len(fecha) == 2 or len(fecha) == 5:
             self.fecha.insert(len(fecha),"/")
         if len(fecha) >= 10:
