@@ -169,9 +169,7 @@ class Inscripciones_2:
         self.cargar_combobox()
 
 
-        #--------------------------------------------------------------------------------
-           #lee y actualiza el entry No_Inscripcion
-        self.entry_num_inscripcion()
+        
         #--------------------------------------------------------------------------------
 
 
@@ -201,6 +199,7 @@ class Inscripciones_2:
         #-----------------------------------------------
 
         self.validar_Tview()
+    
 
 
 
@@ -256,11 +255,14 @@ class Inscripciones_2:
         
     def tabla_inscritos(self):#un punto puede generar error
         sql = """ CREATE TABLE IF NOT EXISTS  Inscritos(
-            No_Inscripcion INTEGER PRIMARY KEY AUTOINCREMENT,
+            No_Inscripcion INTEGER NOT NULL, 
             Id_Alumno VARCHAR(20) NOT NULL,
             Fecha_Inscripcion DATE NOT NULL,
-            Codigo_Curso VARCHAR(20) NOT NULL) """
-        self.ejecutar_consulta(sql)
+            Codigo_Curso VARCHAR(20) NOT NULL,
+            Curso VARCHAR(60),
+            Horario VARCHAR(20),
+            PRIMARY KEY(No_Inscripcion,Id_Alumno,Codigo_Curso))"""
+        self.ejecutar_consulta(sql)#(Id_Alumno,Fecha_Inscripcion,Codigo_Curso,Curso,Horario)
         
     def dato_prueba(self):#insercion de prueba el OR REPLACE lo que hace es ignorar la primary key y actualiza(cambia) los valores de las columnas
         sql = """INSERT OR REPLACE INTO Alumnos(id_Alumno,id_Carrera,Nombres,Apellidos,Fecha_Ingreso,
@@ -299,6 +301,7 @@ class Inscripciones_2:
           #esto es exclusivamente creado para que cuando guardar_inscritos() se realice correctamente elimine lo que haya en el entry num_Inscripcion y se ejecute entry_num_inscripcion()
         elif opcion == '3':
             self.num_Inscripcion.delete(0,tk.END)
+            
         #--------------------------------------------------------
         
         #-------------------------------------------------------
@@ -320,6 +323,16 @@ class Inscripciones_2:
         info_alumno = self.ejecutar_consulta(sql) # el ejecutar_consulta,fetchall retorna una lista de  tuplas, es decir info_alumno contiene = [(Nombres,Apellidos)]
         #funcion que limpie los campos
         self.limpiar_entrys(7)
+
+        #actualiza el entry num_inscripcion si el alumno ya tiene un num_inscripcion***--------------esto es nuevo
+        sql4 = f""" SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = '{id_alumno}' LIMIT 1"""
+        num_inscripcion_existente = self.ejecutar_consulta(sql4)
+        if num_inscripcion_existente:
+            num_inscripcion_existente = num_inscripcion_existente[0][0]
+            self.limpiar_entrys('3')
+            self.num_Inscripcion.insert(0, num_inscripcion_existente)
+        else:
+            pass
 
         #funcion que cargue los campos despues de seleccionar un id_alumno
         
@@ -387,38 +400,57 @@ class Inscripciones_2:
 #--------------------------------------------------------------------------------------------------------------------------
     #guardar informacion en la tabla inscritos***
     def guardar_inscritos(self):
-        #validar que los campos esten con la informacion correcta (id_exisa,fechavalidad,materias existan)(con ventana emergente si falta informacion,hay columnas que no deben ser null)
-        #validar si el estudiante ya inscribio esa materia
-        #que hacer con el numero de inscripcion = autoincrement
         id_alumno = self.cmbx_Id_Alumno.get()
         fecha = self.fecha.get()
         codigo_curso = self.id_Curso.get()
         curso = self.descripc_Curso.get()
         horario = self.horario.get()
-
         if self.validar_campos_completos(id_alumno,fecha,codigo_curso):
-            sql2 = f""" INSERT INTO Inscritos(Id_Alumno,Fecha_Inscripcion,Codigo_Curso,Curso,Horario)
-            VALUES('{id_alumno}','{fecha}','{codigo_curso}','{curso}','{horario}') """
-
             if self.validar_doble_inscripcion(id_alumno,codigo_curso):
                 messagebox.showerror("Guardar Inscripcion", f"ERROR, el/la estudiante: {self.apellidos.get()} ya tiene inscrita la materia: {self.descripc_Curso.get() }.") 
                 self.limpiar_entrys('4')
-
-        
             else:
-                try:
-                    self.ejecutar_consulta(sql2)
-                    messagebox.showinfo("Guardar Inscripcion", "La inscripcion se guardo satisfactoriamente.")
-                    self.limpiar_entrys('4')
-                    self.limpiar_entrys('3')#limpia el entry num_inscripcion para que se actualice correctamente
-                    self.entry_num_inscripcion()
-            
-            
-                except Exception as e:
-                    messagebox.showerror("Guardar Inscripcion", f"Ocurrió un error al guardar los inscritos: {e}")
+                sql4 = f""" SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = '{id_alumno}' LIMIT 1"""
+                num_inscripcion_existente = self.ejecutar_consulta(sql4)
+                if  num_inscripcion_existente:
+                    try: #consulta sql para extraer el num_inscripcion especifico de la tabla inscritos
+                        num_inscripcion_existente = num_inscripcion_existente[0][0]#[(num_inscripcion,)] se extrae el num_inscripcion
+                        sql3 = f""" INSERT INTO Inscritos(No_Inscripcion,Id_Alumno,Fecha_Inscripcion,Codigo_Curso,Curso,Horario)
+                        VALUES('{num_inscripcion_existente}','{id_alumno}','{fecha}','{codigo_curso}','{curso}','{horario}') """
+                        self.ejecutar_consulta(sql3)
+                        messagebox.showinfo("Guardar Inscripcion", "La inscripcion se guardo satisfactoriamente.")
+                        self.limpiar_entrys('4')
+                        self.limpiar_entrys('3')#limpia el entry num_inscripcion para que se actualice correctamente
+                        self.num_Inscripcion.insert(0,num_inscripcion_existente) 
+
+                    except Exception as e:
+                        messagebox.showerror("Guardar Inscripcion", f"Ocurrió un error al guardar los inscritos: {e}")  
+                else:
+                    
+                    try:
+                       
+                        sql5 = """SELECT MAX(No_Inscripcion) FROM Inscritos"""
+                        num_inscripcion1 = self.ejecutar_consulta(sql5)
+                        if num_inscripcion1 is not None and num_inscripcion1[0][0] is not None: # si devuelve un valor no None, se le suma 1 a ese valor
+                            num_inscripcion1 = num_inscripcion1[0][0] + 1
+                        else:
+                            num_inscripcion1 = 1  # si devuelve None o un valor vacío, se le asigna el valor 1
+                        
+                        sql2 = f""" INSERT INTO Inscritos(No_Inscripcion,Id_Alumno,Fecha_Inscripcion,Codigo_Curso,Curso,Horario)
+                        VALUES('{num_inscripcion1}','{id_alumno}','{fecha}','{codigo_curso}','{curso}','{horario}') """
+                        self.ejecutar_consulta(sql2)
+                        messagebox.showinfo("Guardar Inscripcion", "La inscripcion se guardo satisfactoriamente.")
+                        self.limpiar_entrys('4')
+                        self.limpiar_entrys('3')#limpia el entry num_inscripcion para que se actualice correctamente
+                        self.num_Inscripcion.insert(0,num_inscripcion1) 
+
+                    except Exception as e:
+                        messagebox.showerror("Guardar Inscripcion", f"Ocurrio un error al guardar los inscritos: {e}")
+
         else:
             messagebox.showerror("Guardar Inscripcion", "Por favor complete todos los campos.")
 
+    
 
     def validar_campos_completos(self,id_alumno,fecha,codigo_curso):
 
@@ -445,12 +477,7 @@ class Inscripciones_2:
 
 
      
-#------------------------------------------------------------------------------------------------------------------------------------------
-    #Leer y actualizar No_inscripcion***
-    def entry_num_inscripcion(self):
-        sql = f"""SELECT COUNT(*) FROM Inscritos"""
-        num_inscripcion = self.ejecutar_consulta(sql)
-        self.num_Inscripcion.insert(0,num_inscripcion) 
+
 #-----------------------------------------------------------------------------------------------------------------------------------        
     
 
