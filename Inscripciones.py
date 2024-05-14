@@ -160,6 +160,7 @@ class Inscripciones_2:
         self.tabla_carreras()
         self.tabla_cursos()
         self.tabla_inscritos()
+        self.tabla_inscritos2()
         self.dato_prueba()#tener presente el orden de ejecucion
 
         #-----------------------------------------------------
@@ -204,13 +205,17 @@ class Inscripciones_2:
 
 
     
-    def ejecutar_consulta(self, consulta):
+    def ejecutar_consulta(self, consulta, parametros=None):
         try:
             with sql.connect(self.db_name) as conexion:
                 cursor = conexion.cursor()
-                cursor.execute(consulta) #se ejecutó el sql 
-                conexion.commit()
-                return cursor.fetchall()#devuleve una tupla de todas las filas de la columna(id_Alumn) ,(especifico par el combobox) ,pero se puede complementar para otras funciones,ejemplo : en la funcion mostrar_info_alumno 
+                if parametros is None:
+                    cursor.execute(consulta)  # Ejecuta la consulta sin parámetros
+                    return cursor.fetchall() 
+                else:
+                    cursor.execute(consulta, parametros)  # Ejecuta la consulta con parámetros
+                    conexion.commit()
+                    return cursor.fetchall()  # Devuelve una lista de tuplas con los resultados de la consulta
         except sql.Error as e:
             print(f"Error al ejecutar la consulta: {e}")
 
@@ -264,6 +269,15 @@ class Inscripciones_2:
             PRIMARY KEY(No_Inscripcion,Id_Alumno,Codigo_Curso))"""
         self.ejecutar_consulta(sql)#(Id_Alumno,Fecha_Inscripcion,Codigo_Curso,Curso,Horario)
         
+
+    #tabla para manejar los numeros de inscripciones usados
+    def tabla_inscritos2(self):
+        sql = """ CREATE TABLE IF NOT EXISTS  Inscritos2(
+            No_Inscripcion_Usado INTEGER NOT NULL,
+            PRIMARY KEY(No_Inscripcion_Usado))"""
+        self.ejecutar_consulta(sql)
+
+
     def dato_prueba(self):#insercion de prueba el OR REPLACE lo que hace es ignorar la primary key y actualiza(cambia) los valores de las columnas
         sql = """INSERT OR REPLACE INTO Alumnos(id_Alumno,id_Carrera,Nombres,Apellidos,Fecha_Ingreso,
         Direccion,Telef_Cel,Telef_Fijo,Ciudad,Departamento)
@@ -319,20 +333,20 @@ class Inscripciones_2:
         id_alumno = self.cmbx_Id_Alumno.get()
         
         # Obtener la información del alumno seleccionado de la base de datos
-        sql =f"""SELECT Nombres,Apellidos FROM Alumnos WHERE id_Alumno = '{id_alumno}'"""
-        info_alumno = self.ejecutar_consulta(sql) # el ejecutar_consulta,fetchall retorna una lista de  tuplas, es decir info_alumno contiene = [(Nombres,Apellidos)]
+        sql =f"""SELECT Nombres,Apellidos FROM Alumnos WHERE id_Alumno = ?"""
+        info_alumno = self.ejecutar_consulta(sql,(id_alumno,)) # el ejecutar_consulta,fetchall retorna una lista de  tuplas, es decir info_alumno contiene = [(Nombres,Apellidos)]
         #funcion que limpie los campos
         self.limpiar_entrys(7)
 
         #actualiza el entry num_inscripcion si el alumno ya tiene un num_inscripcion***--------------esto es nuevo
-        sql4 = f""" SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = '{id_alumno}' LIMIT 1"""
-        num_inscripcion_existente = self.ejecutar_consulta(sql4)
+        sql4 = f""" SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = ? LIMIT 1"""
+        num_inscripcion_existente = self.ejecutar_consulta(sql4,(id_alumno,))
         if num_inscripcion_existente:
             num_inscripcion_existente = num_inscripcion_existente[0][0]
             self.limpiar_entrys('3')
             self.num_Inscripcion.insert(0, num_inscripcion_existente)
         else:
-            pass
+            self.limpiar_entrys('3')
 
         #funcion que cargue los campos despues de seleccionar un id_alumno
         
@@ -343,11 +357,11 @@ class Inscripciones_2:
     def leer_campo_combobox(self,event):#permite leer las entradas(click en alguna tecla) y buscar mediante el id si existe el alumno en la base de datos 
         id_alumno = self.cmbx_Id_Alumno.get()
 
-        sql =f"""SELECT Nombres,Apellidos FROM Alumnos WHERE id_Alumno = '{id_alumno}'"""
+        sql =f"""SELECT Nombres,Apellidos FROM Alumnos WHERE id_Alumno = ?"""
 
         #se valida si la entrada son numeros
         
-        info_alumno = self.ejecutar_consulta(sql) # el ejecutar_consulta,fetchall retorna una lista de  tuplas, es decir info_alumno contiene = [(Nombres,Apellidos)]
+        info_alumno = self.ejecutar_consulta(sql,(id_alumno,)) # el ejecutar_consulta,fetchall retorna una lista de  tuplas, es decir info_alumno contiene = [(Nombres,Apellidos)]
         #funcion que limpie los campos
         self.limpiar_entrys(7)
         if info_alumno:# si los numeros suministrados existen como id , se ejecuta la siguiente isntruccion
@@ -370,9 +384,9 @@ class Inscripciones_2:
     #llenar campos entrys con el mismo enfoque del combobox(llenar campos) pero con "<KeyRelease>" como primer parametro de .bind
     def buscar_descripCurso(self,event):
         id_curso = self.id_Curso.get()
-        sql = f"""SELECT Descrip_Curso,Num_Horas FROM Cursos WHERE Codigo_Curso = '{id_curso}'""" #importante que las comillas vayan en {} porque si la entrada son ejemplo 10 y b , sql lo tomara como entero+string y id_curso no admite numeros admie strings
-        info_alumno = self.ejecutar_consulta(sql) # el ejecutar_consulta,fetchall retorna una lista de  tuplas, es decir info_alumno contiene = [(Nombres,Apellidos)]
-        #funcion que limpie los campos
+        sql = f"""SELECT Descrip_Curso,Num_Horas FROM Cursos WHERE Codigo_Curso = ? """ #importante que las comillas vayan en {} porque si la entrada son ejemplo 10 y b , sql lo tomara como entero+string y id_curso no admite numeros admie strings
+        info_alumno = self.ejecutar_consulta(sql,(id_curso,)) # el ejecutar_consulta,fetchall retorna una lista de  tuplas, es decir info_alumno contiene = [(Nombres,Apellidos)]
+        
         self.limpiar_entrys('1')
         if info_alumno:#si el id_curso es encontrado cumple la condicion y luego se le asignara el valor a descripc_Curso,num_horas ,es decir, la tupla que retorno ejecutar_consulta() estará almacenada en descripc_Curso,num_horas
             descripc_Curso,num_horas= info_alumno[0]  #se procede a desempaquetar, se elige hacer de esta manera porque es seguro que al ejecutar la consulta el fetchall retorna [(descripc_curso,Num_Horas)], se usa asignacion multiple
@@ -384,9 +398,9 @@ class Inscripciones_2:
         
     def buscar_id_curso(self,event):
         descripc_Curso = self.descripc_Curso.get()
-        sql = f"""SELECT Codigo_Curso,Num_Horas FROM Cursos WHERE Descrip_Curso ='{descripc_Curso}'"""
+        sql = f"""SELECT Codigo_Curso,Num_Horas FROM Cursos WHERE Descrip_Curso = ?"""
 
-        info_alumno = self.ejecutar_consulta(sql)
+        info_alumno = self.ejecutar_consulta(sql,(descripc_Curso,)) # el ejecutar_consulta,fetchall retorna una lista de  tuplas, es decir info_alumno contiene = [(Nombres,Apellidos)]
         self.limpiar_entrys('2')
         if info_alumno:
             codigo_curso,num_horas = info_alumno[0]#se procede a desempaquetar, se elige hacer de esta manera porque es seguro que al ejecutar la consulta el fetchall retorna [(descripc_curso,Num_Horas)], se usa asignacion multiple
@@ -398,7 +412,7 @@ class Inscripciones_2:
 
 
 #--------------------------------------------------------------------------------------------------------------------------
-    #guardar informacion en la tabla inscritos***
+    #funciones para guardar inscritos***
     def guardar_inscritos(self):
         id_alumno = self.cmbx_Id_Alumno.get()
         fecha = self.fecha.get()
@@ -406,73 +420,93 @@ class Inscripciones_2:
         curso = self.descripc_Curso.get()
         horario = self.horario.get()
         if self.validar_campos_completos(id_alumno,fecha,codigo_curso):
+
+
             if self.validar_doble_inscripcion(id_alumno,codigo_curso):
                 messagebox.showerror("Guardar Inscripcion", f"ERROR, el/la estudiante: {self.apellidos.get()} ya tiene inscrita la materia: {self.descripc_Curso.get() }.") 
-                self.limpiar_entrys('4')
+                self.limpiar_entrys('4')                
             else:
-                sql4 = f""" SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = '{id_alumno}' LIMIT 1"""
-                num_inscripcion_existente = self.ejecutar_consulta(sql4)
+                sql = f""" SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = ? LIMIT 1"""# para verificar si el alumno ya tiene un numero de inscripcion asignado
+                num_inscripcion_existente = self.ejecutar_consulta(sql,(id_alumno,))
+
                 if  num_inscripcion_existente:
-                    try: #consulta sql para extraer el num_inscripcion especifico de la tabla inscritos
-                        num_inscripcion_existente = num_inscripcion_existente[0][0]#[(num_inscripcion,)] se extrae el num_inscripcion
-                        sql3 = f""" INSERT INTO Inscritos(No_Inscripcion,Id_Alumno,Fecha_Inscripcion,Codigo_Curso,Curso,Horario)
-                        VALUES('{num_inscripcion_existente}','{id_alumno}','{fecha}','{codigo_curso}','{curso}','{horario}') """
-                        self.ejecutar_consulta(sql3)
-                        messagebox.showinfo("Guardar Inscripcion", "La inscripcion se guardo satisfactoriamente.")
-                        self.limpiar_entrys('4')
-                        self.limpiar_entrys('3')#limpia el entry num_inscripcion para que se actualice correctamente
-                        self.num_Inscripcion.insert(0,num_inscripcion_existente) 
-
-                    except Exception as e:
-                        messagebox.showerror("Guardar Inscripcion", f"Ocurrió un error al guardar los inscritos: {e}")  
+                    self.guardar_Mismo_No_Inscripcion_Tabla_Inscritos(num_inscripcion_existente,id_alumno,fecha,codigo_curso,curso,horario) 
                 else:
-                    
-                    try:
-                       
-                        sql5 = """SELECT MAX(No_Inscripcion) FROM Inscritos"""
-                        num_inscripcion1 = self.ejecutar_consulta(sql5)
-                        if num_inscripcion1 is not None and num_inscripcion1[0][0] is not None: # si devuelve un valor no None, se le suma 1 a ese valor
-                            num_inscripcion1 = num_inscripcion1[0][0] + 1
-                        else:
-                            num_inscripcion1 = 1  # si devuelve None o un valor vacío, se le asigna el valor 1
+                        sql2 = """ SELECT MAX(No_Inscripcion)
+                        FROM Inscritos"""
+                        num_max_inscripcion = self.ejecutar_consulta(sql2)
                         
-                        sql2 = f""" INSERT INTO Inscritos(No_Inscripcion,Id_Alumno,Fecha_Inscripcion,Codigo_Curso,Curso,Horario)
-                        VALUES('{num_inscripcion1}','{id_alumno}','{fecha}','{codigo_curso}','{curso}','{horario}') """
-                        self.ejecutar_consulta(sql2)
-                        messagebox.showinfo("Guardar Inscripcion", "La inscripcion se guardo satisfactoriamente.")
-                        self.limpiar_entrys('4')
-                        self.limpiar_entrys('3')#limpia el entry num_inscripcion para que se actualice correctamente
-                        self.num_Inscripcion.insert(0,num_inscripcion1) 
+                        sql4= """ SELECT MAX(No_Inscripcion_Usado)
+                        FROM Inscritos2"""
+                        num_max_inscripcion2 = self.ejecutar_consulta(sql4)
+                         
+                        if num_max_inscripcion[0][0]:# se accede a [(num_max_inscripcion,),] y si el valor es no None se le suma 1
+                            num_inscripcion = num_max_inscripcion[0][0] + 1 
+                            
+                            if num_max_inscripcion2[0][0]:
+                                num_inscripcion = self.validar_No_Usado(num_max_inscripcion2[0][0],num_inscripcion) 
 
-                    except Exception as e:
-                        messagebox.showerror("Guardar Inscripcion", f"Ocurrio un error al guardar los inscritos: {e}")
-
+                            else:
+                                pass           
+                        else:
+                            num_inscripcion = 1  
+                            num_inscripcion = self.validar_No_Usado(num_max_inscripcion2[0][0],num_inscripcion)
+                            
+                            
+                        self.guardar_Nueva_Inscripcion(num_inscripcion, id_alumno, fecha, codigo_curso, curso, horario)
         else:
             messagebox.showerror("Guardar Inscripcion", "Por favor complete todos los campos.")
 
-    
-
     def validar_campos_completos(self,id_alumno,fecha,codigo_curso):
-
         if id_alumno and fecha and codigo_curso:
             return True
         else:
             return False
-   
-    #validar que el estudiante no escriba la misma materia
+
     def validar_doble_inscripcion(self,id_alumno,codigo_curso):
         #si el id_alumno existe con el codigo_curso ,return True
         id_alumno = id_alumno
         codigo_curso = codigo_curso
 
-        sql = f""" SELECT Codigo_Curso FROM Inscritos WHERE Id_Alumno = '{id_alumno}'  """
-        info_inscripciones = self.ejecutar_consulta(sql)
+        sql = f""" SELECT Codigo_Curso FROM Inscritos WHERE Id_Alumno = ? """
+        info_inscripciones = self.ejecutar_consulta(sql,(id_alumno,))
+        #print(info_inscripciones)
         
         for curso in info_inscripciones:# se itera en cada tupla retornada por ejecutar_consulta()
             if curso[0] == codigo_curso: # se compara la posicion sub0 de la tupla la cual esta siendo iterada
              return True  # El alumno ya está inscrito en este curso
-    
-        return False  # El alumno no está inscrito en este curso
+            else:
+                return False  # El alumno no está inscrito en este curso
+
+    def validar_No_Usado(self,num_max_inscripcion2,num_inscripcion):
+        sql3= """SELECT No_Inscripcion_Usado FROM Inscritos2"""
+        num_inscripciones_usadas= self.ejecutar_consulta(sql3)
+        
+        for no_Usado in num_inscripciones_usadas:# se itera en cada tupla retornada por ejecutar_consulta()
+            if no_Usado[0] == num_inscripcion and num_max_inscripcion2:# se compara la posicion sub0 de la tupla la cual esta siendo iterada..
+                num_inscripcion = num_max_inscripcion2 + 1##
+            else: 
+                pass
+        return num_inscripcion
+        
+    def guardar_Nueva_Inscripcion(self, num_inscripcion, id_alumno, fecha, codigo_curso, curso, horario):
+        sql2 = f""" INSERT INTO Inscritos(No_Inscripcion,Id_Alumno,Fecha_Inscripcion,Codigo_Curso,Curso,Horario)
+                        VALUES(?,?,?,?,?,?) """
+        self.ejecutar_consulta(sql2,(num_inscripcion,id_alumno,fecha,codigo_curso,curso,horario))
+        messagebox.showinfo("Guardar Inscripcion", "La inscripcion se guardo satisfactoriamente.")
+        self.limpiar_entrys('4')
+        self.limpiar_entrys('3')#limpia el entry num_inscripcion para que se actualice correctamente
+        self.num_Inscripcion.insert(0,num_inscripcion) 
+        
+    def guardar_Mismo_No_Inscripcion_Tabla_Inscritos(self,num_inscripcion_existente,id_alumno,fecha,codigo_curso,curso,horario):
+        num_inscripcion_existente = num_inscripcion_existente[0][0]#[(num_inscripcion,)] se extrae el num_inscripcion
+        sql3 = f""" INSERT INTO Inscritos(No_Inscripcion,Id_Alumno,Fecha_Inscripcion,Codigo_Curso,Curso,Horario)
+                        VALUES(?,?,?,?,?,?) """
+        self.ejecutar_consulta(sql3,(num_inscripcion_existente,id_alumno,fecha,codigo_curso,curso,horario))
+        messagebox.showinfo("Guardar Inscripcion", "La inscripcion se guardo satisfactoriamente.")
+        self.limpiar_entrys('4')
+        self.limpiar_entrys('3')#limpia el entry num_inscripcion para que se actualice correctamente
+        self.num_Inscripcion.insert(0,num_inscripcion_existente) 
 #------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -597,8 +631,12 @@ class Inscripciones_2:
         
         #Si pasa la verificación de campos, verifica que el alumno este en el curso
         if self.validar_doble_inscripcion(id_alumno,codigo_curso): 
-            try: #Intenta eliminar el alumno
-                sql = f"DELETE FROM Inscritos WHERE Id_Alumno ={id_alumno} AND Codigo_Curso ={codigo_curso}"
+            try:
+
+                self.obtener_No_Inscripcion_del_alumno(id_alumno)# necesaria para guardar el No_Inscripcion a eliminar con la finalidad de no ser usada de nuevo
+
+                #Intenta eliminar el alumno
+                sql = f"DELETE FROM Inscritos WHERE Id_Alumno ='{id_alumno}' AND Codigo_Curso = '{codigo_curso}'"
                 self.ejecutar_consulta(sql)
                 messagebox.showinfo("Eliminacion Correcta","La inscripción del alumno fue eliminada correctamente")
                 self.limpiar_entrys('4')
@@ -606,6 +644,17 @@ class Inscripciones_2:
                 messagebox.showerror("Error al eliminar", str(e))
         else: #El alumno no esta inscrito en el curso
             messagebox.showerror("Error al eliminar", "El alumno no esta inscrito a este curso")
+
+
+    #antes de eliminar la inscripcion total del alumno, se procede a acceder a su numero de inscripción para que no vuelva a ser usada
+    def obtener_No_Inscripcion_del_alumno(self, id_alumno):
+        sql2 = f"""SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = '{id_alumno}' LIMIT 1"""
+        no_Inscripcion_A_Eliminar = self.ejecutar_consulta(sql2)
+        if no_Inscripcion_A_Eliminar:
+            no_Inscripcion_A_Eliminar = no_Inscripcion_A_Eliminar[0][0]
+            sql3 = f"""INSERT INTO Inscritos2(No_Inscripcion_Usado) VALUES({no_Inscripcion_A_Eliminar})"""
+            self.ejecutar_consulta(sql3)
+            
 #------------------------------------------------------------------------------------------------------------------------------------------
 
     def limpiar_columnas_tView(self):
