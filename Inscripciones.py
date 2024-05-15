@@ -101,7 +101,7 @@ class Inscripciones_2:
         self.btnEditar.configure(text='Editar')
         self.btnEditar.place(anchor="nw", x=250, y=260)
         #Botón Eliminar
-        self.btnEliminar = ttk.Button(self.frm_1, name="btneliminar", command= self.eliminar_inscripcion)
+        self.btnEliminar = ttk.Button(self.frm_1, name="btneliminar", command= self.abrir_widget_eliminar)
         self.btnEliminar.configure(text='Eliminar')
         self.btnEliminar.place(anchor="nw", x=350, y=260)
         #Botón Cancelar
@@ -150,6 +150,8 @@ class Inscripciones_2:
         #Combobox Alumno
         self.cmbx_Id_Alumno = ttk.Combobox(self.frm_1, name="cmbx_id_alumno")
         self.cmbx_Id_Alumno.place(anchor="nw", width=112, x=100, y=80)
+        #Widget de eliminar
+        self.widget_eliminar = None
 
         #centrar ventana principal
         self.centrar_win()
@@ -563,13 +565,57 @@ class Inscripciones_2:
     
 #------------------------------------------------------------------------------------------------------------------------------------------
     #Funciones para el Boton Eliminar
-    def eliminar_inscripcion(self):    
-        #Toma los datos
+    def abrir_widget_eliminar(self):
+        if self.widget_eliminar is None:
+            self.widget_eliminar = tk.Toplevel(self.win)
+            self.widget_eliminar.title("Eliminar Datos")
+
+            for i in range(12):
+                self.widget_eliminar.rowconfigure(i, weight=1, minsize=20)
+
+            for j in range(5):
+                self.widget_eliminar.columnconfigure(j, weight=1, minsize=40)
+            
+            tk.Label(self.widget_eliminar, text="Seleccione una opción:").grid(row=1, column=1, columnspan=3)
+
+            self.widget_eliminar.geometry("300x200")
+
+            window_width = self.widget_eliminar.winfo_reqwidth()
+            window_height = self.widget_eliminar.winfo_reqheight()
+            position_right = int(self.widget_eliminar.winfo_screenwidth()/2 - window_width/2)
+            position_down = int(self.widget_eliminar.winfo_screenheight()/2 - window_height/2)
+            self.widget_eliminar.geometry("+{}+{}".format(position_right, position_down))
+            
+            tipo_de_eliminacion = tk.IntVar()
+            opcion1 = tk.Radiobutton(self.widget_eliminar, text="Borrar un curso", variable=tipo_de_eliminacion, value=1)
+            opcion2 = tk.Radiobutton(self.widget_eliminar, text="Borrar todos los cursos", variable=tipo_de_eliminacion, value=2)
+            opcion3 = tk.Radiobutton(self.widget_eliminar, text="Borrar registro", variable=tipo_de_eliminacion, value=3)
+
+            opcion1.grid(row=3, column=1, columnspan=3, sticky='w')
+            opcion2.grid(row=4, column=1, columnspan=3, sticky='w')
+            opcion3.grid(row=5, column=1, columnspan=3, sticky='w')
+
+            btn_aceptar = tk.Button(self.widget_eliminar, text="Aceptar", command=lambda: self.eliminar_datos(tipo_de_eliminacion))
+            btn_cancelar = tk.Button(self.widget_eliminar, text="Cancelar", command=self.cerrar_widget_eliminar)
+            btn_aceptar.grid(row=7, column=1)
+            btn_cancelar.grid(row=7, column=3)
+
+            self.widget_eliminar.rowconfigure(7, weight=1)
+            self.widget_eliminar.columnconfigure(5, weight=1)
+
+    def eliminar_datos(self, opcion):
+        if opcion.get() == 1:
+            self.eliminar_curso()
+        elif opcion.get() == 2:
+            self.eliminar_todos_curos()
+        elif opcion.get() == 3:
+            self.eliminar_registro()
+        else:
+            print("Debe seleccionar alguna opción")
+
+    def eliminar_curso(self):
         id_alumno = self.cmbx_Id_Alumno.get()
         codigo_curso = self.id_Curso.get()
-        print(id_alumno)
-        print(codigo_curso)
-
         #Verifica que los datos esten completos
         if id_alumno.strip() == "" or codigo_curso.strip() == "":
             messagebox.showerror("Campos incompletos", "Verifique que los campos id_alumno y id_curso no esten en blanco")
@@ -577,15 +623,50 @@ class Inscripciones_2:
         
         #Si pasa la verificación de campos, verifica que el alumno este en el curso
         if self.validar_doble_inscripcion(id_alumno,codigo_curso): 
-            try: #Intenta eliminar el alumno
+            try: #Intenta eliminar el curso
                 sql = f"DELETE FROM Inscritos WHERE Id_Alumno ={id_alumno} AND Codigo_Curso ={codigo_curso}"
                 self.ejecutar_consulta(sql)
-                messagebox.showinfo("Eliminacion Correcta","La inscripción del alumno fue eliminada correctamente")
                 self.limpiar_entrys('4')
+                self.cerrar_widget_eliminar()
+                messagebox.showinfo("Eliminacion Correcta","La inscripción al curso fue eliminada correctamente")
             except Exception  as e: #Si hay un error eliminando el alumno, lo muestra en pantalla
                 messagebox.showerror("Error al eliminar", str(e))
         else: #El alumno no esta inscrito en el curso
             messagebox.showerror("Error al eliminar", "El alumno no esta inscrito a este curso")
+
+    def eliminar_todos_curos(self):
+        id_alumno = self.cmbx_Id_Alumno.get()
+        if id_alumno.strip() == "":
+            messagebox.showerror("Campos incompletos", "Verifique que los campos id_alumno y id_curso no esten en blanco")
+            return
+        try: #Intenta eliminar el alumno
+            sql = f"DELETE FROM Inscritos WHERE Id_Alumno ={id_alumno}"
+            self.ejecutar_consulta(sql)
+            self.limpiar_entrys('4')
+            self.cerrar_widget_eliminar()
+            messagebox.showinfo("Eliminacion Correcta","Se han eliminado todos los cursos")
+        except Exception  as e: #Si hay un error eliminando el alumno, lo muestra en pantalla
+            messagebox.showerror("Error al eliminar", str(e))
+
+    def eliminar_registro(self):
+        inscripcion = self.num_Inscripcion.get()
+        if inscripcion.strip() == "":
+            messagebox.showerror("Campos incompletos", "Verifique que los campos id_alumno y id_curso no esten en blanco")
+            return
+        try: #Intenta eliminar el alumno
+            sql = f"DELETE FROM Inscritos WHERE No_Inscripcion ={inscripcion}"
+            self.ejecutar_consulta(sql)
+            self.limpiar_entrys('4')
+            messagebox.showinfo("Eliminacion Correcta","Se ha eliminado el registro")
+            self.cerrar_widget_eliminar()
+        except Exception  as e: #Si hay un error eliminando el alumno, lo muestra en pantalla
+            messagebox.showerror("Error al eliminar", str(e))
+
+    def cerrar_widget_eliminar(self):
+        if self.widget_eliminar is not None:
+            self.widget_eliminar.destroy()
+            self.widget_eliminar = None
+        return
 #------------------------------------------------------------------------------------------------------------------------------------------
 
     def limpiar_columnas_tView(self):
