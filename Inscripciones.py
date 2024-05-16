@@ -49,7 +49,7 @@ class Inscripciones_2:
         self.lblNombres.configure(text='Nombre(s):')
         self.lblNombres.place(anchor="nw", x=20, y=130)
         #Entry Alumno
-        self.nombres_Var= tk.StringVar()#
+        self.nombres_Var= ttk.Entry(self.frm_1, name="nombres")
         self.nombres = ttk.Entry(self.frm_1, name="nombres", textvariable= self.nombres_Var)
         self.nombres.place(anchor="nw", width=200, x=100, y=130)
         #Label Apellidos
@@ -57,7 +57,7 @@ class Inscripciones_2:
         self.lblApellidos.configure(text='Apellido(s):')
         self.lblApellidos.place(anchor="nw", x=400, y=130)
         #Entry Apellidos
-        self.apellidos_Var= tk.StringVar()#
+        self.apellidos_Var= ttk.Entry(self.frm_1, name="apellidos")
         self.apellidos = ttk.Entry(self.frm_1, textvariable = self.apellidos_Var)
         self.apellidos.place(anchor="nw", width=200, x=485, y=130)
         #Label Curso
@@ -83,7 +83,7 @@ class Inscripciones_2:
         self.descripc_Curso.place(anchor="nw", width=300, x=325, y=185)
         #Label Horario
         self.lblHorario = ttk.Label(self.frm_1, name="label3")
-        self.lblHorario.configure(background="#f7f9fd",state="normal",text='Hora:')
+        self.lblHorario.configure(background="#f7f9fd",state="normal",text='Horario:')
         self.lblHorario.place(anchor="nw", x=635, y=185)
         #Entry del Horario
         self.horario = ttk.Entry(self.frm_1, name="entry3")
@@ -101,7 +101,7 @@ class Inscripciones_2:
         self.btnEditar.configure(text='Editar')
         self.btnEditar.place(anchor="nw", x=250, y=260)
         #Botón Eliminar
-        self.btnEliminar = ttk.Button(self.frm_1, name="btneliminar", command= self.eliminar_inscripcion)
+        self.btnEliminar = ttk.Button(self.frm_1, name="btneliminar", command= self.abrir_widget_eliminar)
         self.btnEliminar.configure(text='Eliminar')
         self.btnEliminar.place(anchor="nw", x=350, y=260)
         #Botón Cancelar
@@ -125,7 +125,7 @@ class Inscripciones_2:
         self.tView_cols = ['tV_descripción','horas']
         self.tView_dcols = ['tV_descripción','horas']
         self.tView.configure(columns=self.tView_cols,displaycolumns=self.tView_dcols)
-        self.tView.column("#0",anchor="w",stretch=True,width=10,minwidth=10)
+        self.tView.column("#0",anchor="w",stretch=True,width=10,minwidth=10)#with = Ancho por defecto minwith=minimo que puede tener
         self.tView.column("tV_descripción",anchor="w",stretch=True,width=200,minwidth=50)
         self.tView.column("horas",anchor="w",stretch=True,width=200,minwidth=50)
         #Cabeceras
@@ -145,11 +145,13 @@ class Inscripciones_2:
 
         # Main widget
         self.mainwindow = self.win
-        #self.mainwindow.iconbitmap('img/picachu.ico') # como estamos trabajando en el mismo directorio, puedo acceder directamente a la carpeta que almacena la img
+        self.mainwindow.iconbitmap('img/picachu.ico') # como estamos trabajando en el mismo directorio, puedo acceder directamente a la carpeta que almacena la img
 
         #Combobox Alumno
         self.cmbx_Id_Alumno = ttk.Combobox(self.frm_1, name="cmbx_id_alumno")
         self.cmbx_Id_Alumno.place(anchor="nw", width=112, x=100, y=80)
+        #Widget de eliminar
+        self.widget_eliminar = None
 
         #centrar ventana principal
         self.centrar_win()
@@ -165,40 +167,28 @@ class Inscripciones_2:
 
         #-----------------------------------------------------
         self.mostrar_Cursos()#codigo compañero
+
         #--------------------------------------------------
-
         self.cargar_combobox()
-
-
-        
-        #--------------------------------------------------------------------------------
-
 
         #----------------------------------------------------------------------------------
              #lo que hace es ejecutar una busqueda en la tabla Alummos cada vez que el usario presione una tecla y llena los entrys apellidos y nombres si lo suministrado en el campo existe en la db***
         self.cmbx_Id_Alumno.bind("<KeyRelease>", self.leer_campo_combobox) 
-        #----------------------------------------------------------------------------------
-
-
         #-----------------------------------------------------------------------------------
           #al seleccionar algun id de la lista desplegable llena los entrys apellidos nombres y apellidos 
         self.cmbx_Id_Alumno.bind("<<ComboboxSelected>>", self.mostrar_info_alumno) 
-        #-----------------------------------------------------------------------------------
-
 
         #-----------------------------------------------------------------------------------
           #lo que hace es ejecutar una busqueda en la tabla Cursos cada vez que el usario presione una tecla y llena el entry descripc_Curso o id_Curso
         self.descripc_Curso.bind("<KeyRelease>", self.buscar_id_curso)
         self.id_Curso.bind("<KeyRelease>", self.buscar_descripCurso)
+        
         #-----------------------------------------------------------------------------------
-
-
-        #---------------------------------------------
         self.fecha.bind("<FocusIn>", self.borrar_fecha) #Al hacer click se borra el texto por defect
         self.fecha.bind("<KeyRelease>", self.autoformateo_de_fecha) #Cuando se va escribiendo se añade el slash automaticamente
         self.fecha.bind("<FocusOut>", self.validar_fecha) #Cuando se cliquea fuera del recuadro de fecha se valida que esta tenga el formato correcto***
+        
         #-----------------------------------------------
-
         self.validar_Tview()
     
 
@@ -219,8 +209,7 @@ class Inscripciones_2:
         except sql.Error as e:
             print(f"Error al ejecutar la consulta: {e}")
 
-    def tabla_alumnos(self): #sin el () en el conexion generaria un error dado que el .cursor no se ejecuta, es decir, el cursor.execute no tendrá presente el .cursor
-
+    def tabla_alumnos(self): 
         sql = """CREATE TABLE IF NOT EXISTS Alumnos(
             id_Alumno VARCHAR(20) PRIMARY KEY NOT NULL,
             id_Carrera VARCHAR(10) NOT NULL,
@@ -300,34 +289,26 @@ class Inscripciones_2:
     def limpiar_entrys(self,opcion):
         #entrys nombre,apellido
         #-----------------------------------------------------
-          # esto es exclusivamente creado para las funcion buscar_id_curso
+        # esto es exclusivamente creado para las funcion buscar_id_curso
         if opcion == '1':
-            self.descripc_Curso.delete(0,tk.END)
-            self.horario.delete(0,tk.END)
-
+            self.descripc_Curso.delete(0,'end')
+            self.horario.delete(0,'end')
         # esto es exclusivamente creado para las funcion buscar_descripcCurso 
         elif opcion == '2':
-            self.id_Curso.delete(0,tk.END)
-            self.horario.delete(0,tk.END)
-        #-------------------------------------------------
-
-        #---------------------------------------------------
-          #esto es exclusivamente creado para que cuando guardar_inscritos() se realice correctamente elimine lo que haya en el entry num_Inscripcion y se ejecute entry_num_inscripcion()
+            self.id_Curso.delete(0,'end')
+            self.horario.delete(0,'end')
+        #esto es exclusivamente creado para que cuando guardar_inscritos() se realice correctamente elimine lo que haya en el entry num_Inscripcion y se ejecute entry_num_inscripcion()
         elif opcion == '3':
-            self.num_Inscripcion.delete(0,tk.END)
-            
-        #--------------------------------------------------------
-        
-        #-------------------------------------------------------
-           #esto es exclusivamente creado para que cuando al guardar satisfactoriamente o cuando pase todo lo contrario los entrys descrip,id_curso,horario se limpien.
+            self.num_Inscripcion.delete(0,'end')
+        #esto es exclusivamente creado para que cuando al guardar satisfactoriamente o cuando pase todo lo contrario los entrys descrip,id_curso,horario se limpien.
         elif opcion == '4':
-            self.id_Curso.delete(0,tk.END)
-            self.descripc_Curso.delete(0,tk.END)
-            self.horario.delete(0,tk.END)
+            self.id_Curso.delete(0,'end')
+            self.descripc_Curso.delete(0,'end')
+            self.horario.delete(0,'end')
         #------------------------------------------------------
         else:
-            self.apellidos_Var.set("") # tambien es posible implementar o acceder a manipular los entrys mediante StringVar()
-            self.nombres_Var.set("")
+            self.apellidos_Var.delete(0,'end') # tambien es posible implementar o acceder a manipular los entrys mediante StringVar()
+            self.nombres_Var.delete(0,'end')
 
     def mostrar_info_alumno(self,event): # en self.cmbx_Id_Alumno.bind("<<ComboboxSelected>>", self.mostrar_info_alumno ) .bin espera un parametro event como parametro de la funcion, sin el event en la funcion da error
         id_alumno = self.cmbx_Id_Alumno.get()
@@ -342,7 +323,7 @@ class Inscripciones_2:
         sql4 = f""" SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = ? LIMIT 1"""
         num_inscripcion_existente = self.ejecutar_consulta(sql4,(id_alumno,))
         if num_inscripcion_existente:
-            num_inscripcion_existente = num_inscripcion_existente[0][0]
+            num_inscripcion_existente = num_inscripcion_existente[0][0]#
             self.limpiar_entrys('3')
             self.num_Inscripcion.insert(0, num_inscripcion_existente)
         else:
@@ -420,8 +401,6 @@ class Inscripciones_2:
         curso = self.descripc_Curso.get()
         horario = self.horario.get()
         if self.validar_campos_completos(id_alumno,fecha,codigo_curso):
-
-
             if self.validar_doble_inscripcion(id_alumno,codigo_curso):
                 messagebox.showerror("Guardar Inscripcion", f"ERROR, el/la estudiante: {self.apellidos.get()} ya tiene inscrita la materia: {self.descripc_Curso.get() }.") 
                 self.limpiar_entrys('4')                
@@ -452,13 +431,12 @@ class Inscripciones_2:
                             num_inscripcion = 1  
                             num_inscripcion = self.validar_No_Usado(num_max_inscripcion2[0][0],num_inscripcion)
                             
-                            
                         self.guardar_Nueva_Inscripcion(num_inscripcion, id_alumno, fecha, codigo_curso, curso, horario)
         else:
             messagebox.showerror("Guardar Inscripcion", "Por favor complete todos los campos.")
 
     def validar_campos_completos(self,id_alumno,fecha,codigo_curso):
-        if id_alumno and fecha and codigo_curso:
+        if id_alumno and fecha and codigo_curso and self.validar_fecha():
             return True
         else:
             return False
@@ -507,14 +485,6 @@ class Inscripciones_2:
         self.limpiar_entrys('4')
         self.limpiar_entrys('3')#limpia el entry num_inscripcion para que se actualice correctamente
         self.num_Inscripcion.insert(0,num_inscripcion_existente) 
-#------------------------------------------------------------------------------------------------------------------------------------------
-
-
-     
-
-#-----------------------------------------------------------------------------------------------------------------------------------        
-    
-
 
 #------------------------------------------------------------------------------------------------------------------------------------------
     #estudiar codigo del compañero***  
@@ -557,16 +527,13 @@ class Inscripciones_2:
             nuevo_curso = (codigo_curso, curso, hora)
             self.tView.insert('',0,text= nuevo_curso[0],values = [nuevo_curso[1],nuevo_curso[2]])
             
-#--------------------------------------------------------------------------------------------------------------        
-    
-    
 #------------------------------------------------------------------------------------------------------------------------------------------   
     #estudiar codigo de compañero***
     #Funciones para el entry fecha
     def borrar_fecha(self, event):
-        self.fecha.delete(0, tk.END)
+        self.fecha.delete(0, 'end')
 
-    def validar_fecha(self, event):
+    def validar_fecha(self, event=None):
         fecha = self.fecha.get()
 
         if self.validar_formato_fecha(fecha):
@@ -590,10 +557,12 @@ class Inscripciones_2:
             if year != 2024:
                 messagebox.showerror("Formato de fecha invalido", "Solo se admiten incripciones de este año")
                 return
+            return True
         else:
             self.borrar_fecha(None)
             self.fecha.insert(0,"dd/mm/aaaa")
             messagebox.showerror("Formato de fecha invalido", "El formato debe ser DD/MM/AAA")
+            return False
 
     def validar_formato_fecha(self, fecha):
         #Verificar si la fecha tiene el formato correcto (DD/MM/YYYY)
@@ -616,21 +585,64 @@ class Inscripciones_2:
         fecha = self.fecha.get()
         print(fecha[-1])
         if fecha[-1] == " ":
-            self.fecha.delete(len(fecha)-1, tk.END)
+            self.fecha.delete(len(fecha)-1, 'end')
         if len(fecha) == 2 or len(fecha) == 5:
             self.fecha.insert(len(fecha),"/")
         if len(fecha) >= 10:
-            self.fecha.delete(10,tk.END)
+            self.fecha.delete(10,'end')
     
 #------------------------------------------------------------------------------------------------------------------------------------------
     #Funciones para el Boton Eliminar
-    def eliminar_inscripcion(self):    
-        #Toma los datos
+    def abrir_widget_eliminar(self):
+        if self.widget_eliminar is None:
+            self.widget_eliminar = tk.Toplevel(self.win)
+            self.widget_eliminar.title("Eliminar Datos")
+
+            for i in range(12):
+                self.widget_eliminar.rowconfigure(i, weight=1, minsize=20)
+
+            for j in range(5):
+                self.widget_eliminar.columnconfigure(j, weight=1, minsize=40)
+            
+            tk.Label(self.widget_eliminar, text="Seleccione una opción:").grid(row=1, column=1, columnspan=3)
+
+            self.widget_eliminar.geometry("300x200")
+
+            window_width = self.widget_eliminar.winfo_reqwidth()
+            window_height = self.widget_eliminar.winfo_reqheight()
+            position_right = int(self.widget_eliminar.winfo_screenwidth()/2 - window_width/2)
+            position_down = int(self.widget_eliminar.winfo_screenheight()/2 - window_height/2)
+            self.widget_eliminar.geometry("+{}+{}".format(position_right, position_down))
+            
+            tipo_de_eliminacion = tk.IntVar()
+            opcion1 = tk.Radiobutton(self.widget_eliminar, text="Borrar un curso", variable=tipo_de_eliminacion, value=1)
+            opcion2 = tk.Radiobutton(self.widget_eliminar, text="Borrar registro", variable=tipo_de_eliminacion, value=2)
+            
+            opcion1.grid(row=3, column=1, columnspan=3, sticky='w')
+            opcion2.grid(row=4, column=1, columnspan=3, sticky='w')
+
+            btn_aceptar = tk.Button(self.widget_eliminar, text="Aceptar", command=lambda: self.eliminar_datos(tipo_de_eliminacion))
+            btn_cancelar = tk.Button(self.widget_eliminar, text="Cancelar", command=self.cerrar_widget_eliminar)
+            btn_aceptar.grid(row=7, column=1)
+            btn_cancelar.grid(row=7, column=3)
+
+            self.widget_eliminar.rowconfigure(7, weight=1)
+            self.widget_eliminar.columnconfigure(5, weight=1)
+
+            self.widget_eliminar.protocol("WM_DELETE_WINDOW", self.cerrar_widget_eliminar) #Corrige el bug que ocurria al cerrar la ventana con la x
+
+
+    def eliminar_datos(self, opcion):
+        if opcion.get() == 1:
+            self.eliminar_curso()
+        elif opcion.get() == 2:
+            self.eliminar_registro()
+        else:
+            messagebox.showerror("Error al Eliminar", "Debe seleccionar al menos una opcion")
+
+    def eliminar_curso(self):
         id_alumno = self.cmbx_Id_Alumno.get()
         codigo_curso = self.id_Curso.get()
-        print(id_alumno)
-        print(codigo_curso)
-
         #Verifica que los datos esten completos
         if id_alumno.strip() == "" or codigo_curso.strip() == "":
             messagebox.showerror("Campos incompletos", "Verifique que los campos id_alumno y id_curso no esten en blanco")
@@ -639,32 +651,48 @@ class Inscripciones_2:
         #Si pasa la verificación de campos, verifica que el alumno este en el curso
         if self.validar_doble_inscripcion(id_alumno,codigo_curso): 
             try:
-
-                self.obtener_No_Inscripcion_del_alumno(id_alumno)# necesaria para guardar el No_Inscripcion a eliminar con la finalidad de no ser usada de nuevo
-
                 #Intenta eliminar el alumno
-                sql = f"DELETE FROM Inscritos WHERE Id_Alumno ='{id_alumno}' AND Codigo_Curso = '{codigo_curso}'"
-                self.ejecutar_consulta(sql)
-                messagebox.showinfo("Eliminacion Correcta","La inscripción del alumno fue eliminada correctamente")
+                sql = """DELETE FROM Inscritos WHERE Id_Alumno = ? AND Codigo_Curso = ?"""
+                self.ejecutar_consulta(sql,(id_alumno, codigo_curso))
                 self.limpiar_entrys('4')
+                self.cerrar_widget_eliminar()
+                messagebox.showinfo("Eliminacion Correcta","La inscripción al curso fue eliminada correctamente")
             except Exception  as e: #Si hay un error eliminando el alumno, lo muestra en pantalla
                 messagebox.showerror("Error al eliminar", str(e))
         else: #El alumno no esta inscrito en el curso
             messagebox.showerror("Error al eliminar", "El alumno no esta inscrito a este curso")
 
 
+    def eliminar_registro(self):
+        id_alumno = self.cmbx_Id_Alumno.get()
+        if id_alumno.strip() == "":
+            messagebox.showerror("Campos incompletos", "Verifique que los campos id_alumno y id_curso no esten en blanco")
+            return
+        try: #Intenta eliminar el alumno
+            sql = """DELETE FROM Inscritos WHERE Id_Alumno = ?"""
+            self.ejecutar_consulta(sql,(id_alumno,))
+            self.limpiar_entrys('4')
+            self.cerrar_widget_eliminar()
+            self.obtener_No_Inscripcion_del_alumno(id_alumno)
+            messagebox.showinfo("Eliminacion Correcta","Se han eliminado todos los cursos")
+        except Exception  as e: #Si hay un error eliminando el alumno, lo muestra en pantalla
+            messagebox.showerror("Error al eliminar", str(e))
+
+    def cerrar_widget_eliminar(self):
+        if self.widget_eliminar is not None:
+            self.widget_eliminar.destroy()
+            self.widget_eliminar = None
+
     #antes de eliminar la inscripcion total del alumno, se procede a acceder a su numero de inscripción para que no vuelva a ser usada
     def obtener_No_Inscripcion_del_alumno(self, id_alumno):
-        sql2 = f"""SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = '{id_alumno}' LIMIT 1"""
-        no_Inscripcion_A_Eliminar = self.ejecutar_consulta(sql2)
+        sql2 = "SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = ? LIMIT 1"
+        no_Inscripcion_A_Eliminar = self.ejecutar_consulta(sql2, (id_alumno,))
         if no_Inscripcion_A_Eliminar:
             no_Inscripcion_A_Eliminar = no_Inscripcion_A_Eliminar[0][0]
-            sql3 = f"""INSERT INTO Inscritos2(No_Inscripcion_Usado) VALUES({no_Inscripcion_A_Eliminar})"""
-            self.ejecutar_consulta(sql3)
+            sql3 = "INSERT INTO Inscritos2(No_Inscripcion_Usado) VALUES(?)"
+            self.ejecutar_consulta(sql3,(id_alumno,))
             
-#------------------------------------------------------------------------------------------------------------------------------------------
-
-    #----------------------------------------------------------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------------
     #Función para vaciar el treeview
     def limpiar_columnas_tView(self):
          #get_children selecciona todas las filas y el for las recorre y se van eliminando 
@@ -732,7 +760,6 @@ class Inscripciones_2:
 #------------------------------------------------------------------------------------------------------------------------------------------------------
     #Función para validar que funcion debe ser usada segun la cantidad de columnas
     def validar_Tview(self):
-        
         num_columnas = len(self.tView.get_children())
         if num_columnas > 3:
             self.tView.bind("<<TreeviewSelect>>", self.mostrar_info_inscritos)
@@ -756,8 +783,6 @@ class Inscripciones_2:
         for col in self.tView_cols:
             self.tView.heading(col, anchor="w", text=(f'{col}'))
             self.tView.column(col,anchor='w',stretch=True,width=74,minwidth=200)
-
-
 
     def cancelar(self):
         col_cursos = ['Descripción','Numero de horas']

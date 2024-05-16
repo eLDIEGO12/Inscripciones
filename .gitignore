@@ -1,2 +1,2 @@
 # Ignorar archivo de base de datos
-*.db
+db/Inscripciones.db
