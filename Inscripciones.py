@@ -74,9 +74,6 @@ class Inscripciones_2:
         self.lblDscCurso = ttk.Label(self.frm_1, name="lbldsccurso")
         self.lblDscCurso.configure(background="#f7f9fd",state="normal",text='Curso:')
         self.lblDscCurso.place(anchor="nw", x=275, y=185)
-
-
-
         #Entry de Descripción del Curso 
         self.descripc_Curso = ttk.Entry(self.frm_1, name="descripc_curso")
         self.descripc_Curso.configure(justify="left", width=166)
@@ -97,7 +94,7 @@ class Inscripciones_2:
         self.btnGuardar.place(anchor="nw", x=150, y=260)
         
         #Botón Editar
-        self.btnEditar = ttk.Button(self.frm_1, name="btneditar",command = self.editar)
+        self.btnEditar = ttk.Button(self.frm_1, name="btneditar",command = self.editar_curso)
         self.btnEditar.configure(text='Editar')
         self.btnEditar.place(anchor="nw", x=250, y=260)
         #Botón Eliminar
@@ -152,6 +149,7 @@ class Inscripciones_2:
         self.cmbx_Id_Alumno.place(anchor="nw", width=112, x=100, y=80)
         #Widget de eliminar
         self.widget_eliminar = None
+        self.editando = False
 
         #centrar ventana principal
         self.centrar_win()
@@ -561,7 +559,7 @@ class Inscripciones_2:
         else:
             self.borrar_fecha(None)
             self.fecha.insert(0,"dd/mm/aaaa")
-            messagebox.showerror("Formato de fecha invalido", "El formato debe ser DD/MM/AAA")
+            messagebox.showerror("Formato de fecha invalido", "El formato de fecha debe ser DD/MM/AAA")
             return False
 
     def validar_formato_fecha(self, fecha):
@@ -657,6 +655,7 @@ class Inscripciones_2:
                 self.limpiar_entrys('4')
                 self.cerrar_widget_eliminar()
                 messagebox.showinfo("Eliminacion Correcta","La inscripción al curso fue eliminada correctamente")
+                self.consultar()
             except Exception  as e: #Si hay un error eliminando el alumno, lo muestra en pantalla
                 messagebox.showerror("Error al eliminar", str(e))
         else: #El alumno no esta inscrito en el curso
@@ -675,6 +674,7 @@ class Inscripciones_2:
             self.cerrar_widget_eliminar()
             self.obtener_No_Inscripcion_del_alumno(id_alumno)
             messagebox.showinfo("Eliminacion Correcta","Se han eliminado todos los cursos")
+            self.consultar()
         except Exception  as e: #Si hay un error eliminando el alumno, lo muestra en pantalla
             messagebox.showerror("Error al eliminar", str(e))
 
@@ -769,10 +769,54 @@ class Inscripciones_2:
      
 #------------------------------------------------------------------------------------------------------------------------------------------------------
     #Función del botón editar
-    def editar(self):
-        self.validar_Tview() 
-        self.consultar() #Mostrar los cursos inscritos por numero de inscripcion
+    def editar_curso(self):
+        self.validar_Tview()
+        id_alumno = self.cmbx_Id_Alumno.get()
+        id_curso = self.id_Curso.get()
+        descripc_Curso = self.descripc_Curso.get()
+        horario = self.horario.get()
 
+        if id_curso.strip() == "" or descripc_Curso.strip() == "" or horario.strip() == "":
+            messagebox.showerror("Error al Editar","Asegurese de tener los campos de curso completos")
+            self.consultar()
+            return
+        
+        if not self.validar_doble_inscripcion(id_alumno, id_curso): 
+            messagebox.showerror("Error al Editar","No puede editar un curso al que no pertenece")
+            return
+        
+        if not self.editando:
+            self.bloquear_campos(self.id_Curso,self.descripc_Curso)
+            self.editando = True
+            return
+        
+        if self.editando:
+            try:
+                query = """UPDATE Inscritos SET Horario = ? WHERE id_Alumno = ? AND codigo_Curso = ?"""
+                self.ejecutar_consulta(query,(horario, id_alumno,id_curso))
+                self.desbloquear_campos(self.id_Curso,self.descripc_Curso)
+                self.editando = False
+                messagebox.showinfo("Edicion Correcta", "El curso se ha editado correctamente")
+                self.consultar()
+            except:
+                messagebox.showerror("Error de Edicion", "Error editando el curso, intente mas tarde")
+
+    def bloquear_campos(self,*entries):
+        print(entries)
+        try:
+            for entry in entries:
+                entry.config(state='disabled')
+        except:
+            messagebox.showerror("ERROR", "Error desconocido")
+    
+    def desbloquear_campos(self,*entries):
+        try: 
+            for entry in entries:
+                entry.config(state='normal')
+        except:
+            messagebox.showerror("ERROR", "Error desconocido")
+
+#----------------------------------------------------------------------------------------------------------
     def columnas_cursos(self,nuevas_columnas):
          # Agregar nuevas columnas al Treeview
         self.limpiar_columnas_tView()
