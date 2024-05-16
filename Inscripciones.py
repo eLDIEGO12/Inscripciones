@@ -308,6 +308,11 @@ class Inscripciones_2:
             self.apellidos_Var.delete(0,'end') # tambien es posible implementar o acceder a manipular los entrys mediante StringVar()
             self.nombres_Var.delete(0,'end')
 
+    def mostrar_num_inscripcion(self):
+        id_alumno = self.cmbx_Id_Alumno.get()
+        sql="""SELECT No_Inscripcion FROM Inscritos WHERE id_Alumno = ?"""
+        self.ejecutar_consulta(sql,(id_alumno))
+
     def mostrar_info_alumno(self,event): # en self.cmbx_Id_Alumno.bind("<<ComboboxSelected>>", self.mostrar_info_alumno ) .bin espera un parametro event como parametro de la funcion, sin el event en la funcion da error
         id_alumno = self.cmbx_Id_Alumno.get()
         
@@ -332,7 +337,7 @@ class Inscripciones_2:
         nombres, apellidos = info_alumno[0]  #se procede a desempaquetar, se elige hacer esta manera porque es seguro que el id_alumno seleccionado siempre va tener nombres y apellidos,utilizando la asignación múltiple.
         self.nombres.insert(0, nombres)  # Insertar el nombre en el Entry "nombres"
         self.apellidos.insert(0, apellidos) #Insertar el apellido en el Entry "apellidos"
-
+        self.mostrar_num_inscripcion()
     def leer_campo_combobox(self,event):#permite leer las entradas(click en alguna tecla) y buscar mediante el id si existe el alumno en la base de datos 
         id_alumno = self.cmbx_Id_Alumno.get()
 
@@ -735,13 +740,17 @@ class Inscripciones_2:
         #Obtiene el numero de inscripcion
         inscripcion = self.num_Inscripcion.get()
         #busqueda en base al numero de inscripcion obtenido 
-        query = f"""SELECT * FROM Inscritos WHERE No_Inscripcion = {inscripcion} ORDER BY Codigo_Curso DESC"""
-        db_ColumnasCursos = self.ejecutar_consulta(query)
+        query = """SELECT * FROM Inscritos WHERE No_Inscripcion = ? ORDER BY Codigo_Curso DESC"""
+        self.db_ColumnasCursos = self.ejecutar_consulta(query,(inscripcion))
 
         #Insertar los datos en la tabla de la pantalla
-        for row in db_ColumnasCursos:
-            self.tView.insert('',0,text= row[3],values = [row[1],row[4],row[5]])
-            print(row)
+        if self.db_ColumnasCursos is None:
+             messagebox.showerror("Error al consultar", "Indique el número de inscripción")
+        else:
+            for row in self.db_ColumnasCursos:
+                self.tView.insert('',0,text= row[3],values = [row[1],row[4],row[5]])
+                print(row)
+ 
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------
     #Función del boton consultar
