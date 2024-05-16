@@ -82,10 +82,7 @@ class Inscripciones_2:
         self.lblHorario = ttk.Label(self.frm_1, name="label3")
         self.lblHorario.configure(background="#f7f9fd",state="normal",text='Horario:')
         self.lblHorario.place(anchor="nw", x=635, y=185)
-        #Entry del Horario
-        self.horario = ttk.Entry(self.frm_1, name="entry3")
-        self.horario.configure(justify="left", width=166)
-        self.horario.place(anchor="nw", width=100, x=680, y=185)
+        
 
         ''' Botones  de la Aplicación'''
         #Botón Guardar
@@ -128,7 +125,7 @@ class Inscripciones_2:
         #Cabeceras
         self.tView.heading("#0", anchor="w", text='Curso')
         self.tView.heading("tV_descripción", anchor="w", text='Descripción')
-        self.tView.heading("horas", anchor="w", text='Numero de Horas')
+        self.tView.heading("horas", anchor="w", text='Horario ')
         self.tView.place(anchor="nw", height=300, width=790, x=4, y=300)
         #Scrollbars
         self.scroll_H = ttk.Scrollbar(self.frm_1, name="scroll_h")
@@ -151,6 +148,11 @@ class Inscripciones_2:
         self.widget_eliminar = None
         self.editando = False
 
+        self.horarios = ['07 AM - 09 AM','09 AM - 11 AM','11 AM - 01 PM','01 PM - 03 AM',
+                         '03 AM - 05 AM','05 PM - 07 PM','08 AM - 10 AM','10 AM - 12 PM',
+                         '02 PM - 04 PM','04 PM - 06 PM']
+        self.cmbx_Horario = ttk.Combobox(self.frm_1, name ="cmbx_horario", values = self.horarios)
+        self.cmbx_Horario.place(anchor="nw", width = 100, x=680, y=185)
         #centrar ventana principal
         self.centrar_win()
 
@@ -235,14 +237,14 @@ class Inscripciones_2:
         sql = """ CREATE TABLE IF NOT EXISTS  Cursos(
             Codigo_Curso VARCHAR(20) PRIMARY KEY ,
             Descrip_Curso VARCHAR(60),
-            Num_Horas SMALLINT(2),
+            Num_Horas VARCHAR(20),
             FOREIGN KEY (Codigo_Curso) REFERENCES Inscritos(Codigo_Curso)  ) """
         self.ejecutar_consulta(sql)
         sql2 = """ INSERT OR REPLACE INTO  Cursos(
             Codigo_Curso ,
             Descrip_Curso,
             Num_Horas)
-            VALUES('100b','ESTRUCTURA','100') """ # descrip_curso despues de una cantidad de caracteres mas de 20 se agrega {}, no se por que jaja
+            VALUES('100b','ESTRUCTURA','07 AM - 09 AM'),('100','TGS','11 AM - 1 PM'),('129','CÁLCULO','4 PM - 6 PM')""" # descrip_curso despues de una cantidad de caracteres mas de 20 se agrega {}, no se por que jaja
         self.ejecutar_consulta(sql2)
         
     def tabla_inscritos(self):#un punto puede generar error
@@ -302,7 +304,7 @@ class Inscripciones_2:
         elif opcion == '4':
             self.id_Curso.delete(0,'end')
             self.descripc_Curso.delete(0,'end')
-            self.horario.delete(0,'end')
+            self.cmbx_Horario.delete(0,'end')
         #------------------------------------------------------
         else:
             self.apellidos_Var.delete(0,'end') # tambien es posible implementar o acceder a manipular los entrys mediante StringVar()
@@ -311,7 +313,9 @@ class Inscripciones_2:
     def mostrar_num_inscripcion(self):
         id_alumno = self.cmbx_Id_Alumno.get()
         sql="""SELECT No_Inscripcion FROM Inscritos WHERE id_Alumno = ?"""
-        self.ejecutar_consulta(sql,(id_alumno))
+        self.ejecutar_consulta(sql,id_alumno)
+        
+
 
     def mostrar_info_alumno(self,event): # en self.cmbx_Id_Alumno.bind("<<ComboboxSelected>>", self.mostrar_info_alumno ) .bin espera un parametro event como parametro de la funcion, sin el event en la funcion da error
         id_alumno = self.cmbx_Id_Alumno.get()
@@ -402,7 +406,7 @@ class Inscripciones_2:
         fecha = self.fecha.get()
         codigo_curso = self.id_Curso.get()
         curso = self.descripc_Curso.get()
-        horario = self.horario.get()
+        horario = self.cmbx_Horario.get()
         if self.validar_campos_completos(id_alumno,fecha,codigo_curso):
             if self.validar_doble_inscripcion(id_alumno,codigo_curso):
                 messagebox.showerror("Guardar Inscripcion", f"ERROR, el/la estudiante: {self.apellidos.get()} ya tiene inscrita la materia: {self.descripc_Curso.get() }.") 
@@ -509,6 +513,7 @@ class Inscripciones_2:
             print(row)
 
     def mostrar_info_cursos(self,event):
+        self.validar_Tview()
         # Obtener el índice seleccionado
         if self.tView.selection():
             selected_item = self.tView.selection()[0]
@@ -517,9 +522,11 @@ class Inscripciones_2:
             self.id_Curso.delete(0, 'end')
             self.id_Curso.insert(0, self.tView.item(selected_item)['text'])  
             self.descripc_Curso.delete(0, 'end')
-            self.descripc_Curso.insert(0, self.tView.item(selected_item)['values'][0])
+            self.descripc_Curso.insert(0, self.tView.item(selected_item)['values'][1])
+            self.cmbx_Horario.delete(0,'end')
+            self.cmbx_Horario.insert(0, self.tView.item(selected_item)['values'][-1])
     
-    def validar_entry(self,funcion):
+    """def validar_entry(self,funcion):
         return len(funcion.get()) != 0
     
     def agregar_curso(self):
@@ -528,7 +535,7 @@ class Inscripciones_2:
             curso = self.descripc_Curso.get()
             hora = self.horario.get()
             nuevo_curso = (codigo_curso, curso, hora)
-            self.tView.insert('',0,text= nuevo_curso[0],values = [nuevo_curso[1],nuevo_curso[2]])
+            self.tView.insert('',0,text= nuevo_curso[0],values = [nuevo_curso[1],nuevo_curso[2]])"""
             
 #------------------------------------------------------------------------------------------------------------------------------------------   
     #estudiar codigo de compañero***
@@ -708,7 +715,7 @@ class Inscripciones_2:
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------
     #Función para cambiar las columnas del tview para el boton consultar
-    def columnas_consultar(self, nuevas_columnas):
+    def columnas_consultar(self, nuevas_columnas,):
         # Agregar nuevas columnas al Treeview
         self.limpiar_columnas_tView()
         self.tView_cols = (nuevas_columnas)
@@ -735,6 +742,7 @@ class Inscripciones_2:
 #------------------------------------------------------------------------------------------------------------------------------------------------------
     #Función para mostrar los inscritos con el boton consultar
     def mostrar_Inscritos(self):
+        self.validar_Tview()
         self.limpia_TreeView()
         #Seleccionar los datos de la BD
         #Obtiene el numero de inscripcion
@@ -755,6 +763,7 @@ class Inscripciones_2:
 #------------------------------------------------------------------------------------------------------------------------------------------------------
     #Función del boton consultar
     def consultar(self):
+        
         #Se limpian los valores del treeview
         for item in self.tView.get_children():
             self.tView.delete(item)
@@ -783,7 +792,7 @@ class Inscripciones_2:
         id_alumno = self.cmbx_Id_Alumno.get()
         id_curso = self.id_Curso.get()
         descripc_Curso = self.descripc_Curso.get()
-        horario = self.horario.get()
+        horario = self.cmbx_Horario.get()
 
         if id_curso.strip() == "" or descripc_Curso.strip() == "" or horario.strip() == "":
             messagebox.showerror("Error al Editar","Asegurese de tener los campos de curso completos")
@@ -828,6 +837,7 @@ class Inscripciones_2:
 #----------------------------------------------------------------------------------------------------------
     def columnas_cursos(self,nuevas_columnas):
          # Agregar nuevas columnas al Treeview
+        self.validar_Tview()
         self.limpiar_columnas_tView()
         self.tView_cols = (nuevas_columnas)
         self.tView_dcols = (nuevas_columnas)
