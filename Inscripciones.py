@@ -97,7 +97,7 @@ class Inscripciones_2:
         self.btnGuardar.place(anchor="nw", x=150, y=260)
         
         #Botón Editar
-        self.btnEditar = ttk.Button(self.frm_1, name="btneditar")
+        self.btnEditar = ttk.Button(self.frm_1, name="btneditar",command = self.editar)
         self.btnEditar.configure(text='Editar')
         self.btnEditar.place(anchor="nw", x=250, y=260)
         #Botón Eliminar
@@ -105,7 +105,7 @@ class Inscripciones_2:
         self.btnEliminar.configure(text='Eliminar')
         self.btnEliminar.place(anchor="nw", x=350, y=260)
         #Botón Cancelar
-        self.btnCancelar = ttk.Button(self.frm_1, name="btncancelar")
+        self.btnCancelar = ttk.Button(self.frm_1, name="btncancelar", command = self.cancelar)
         self.btnCancelar.configure(text='Cancelar')
         self.btnCancelar.place(anchor="nw", x=450, y=260)
         #Botón Consultar
@@ -669,27 +669,50 @@ class Inscripciones_2:
         return
 #------------------------------------------------------------------------------------------------------------------------------------------
 
+    #----------------------------------------------------------------------------------------------------------------------------------------------------
+    #Función para vaciar el treeview
     def limpiar_columnas_tView(self):
+         #get_children selecciona todas las filas y el for las recorre y se van eliminando 
          for column in self.tView.get_children():
             self.tView.delete(column)
          self.tView_cols = ()
          self.tView_dcols = ()
 
+#------------------------------------------------------------------------------------------------------------------------------------------------------
+    #Función para cambiar las columnas del tview para el boton consultar
     def columnas_consultar(self, nuevas_columnas):
         # Agregar nuevas columnas al Treeview
         self.limpiar_columnas_tView()
         self.tView_cols = (nuevas_columnas)
         self.tView_dcols = (nuevas_columnas)
         self.tView.configure(columns=self.tView_cols,displaycolumns=self.tView_dcols)
+        #Recorre las columnas y asigna su nombre y tamaño 
         for col in self.tView_cols:
             self.tView.heading(col, anchor="w", text=(f'{col}'))
-            self.tView.column(col, anchor="center", width=100)
+            self.tView.column(col,anchor='w',stretch=True,width=217,minwidth=217)
 
+#------------------------------------------------------------------------------------------------------------------------------------------------------
+    #Función para rellenar los campos con los valores de los inscritos 
+    def mostrar_info_inscritos(self,event):
+        # Obtener el índice seleccionado
+        if self.tView.selection():
+            selected_item = self.tView.selection()[0]
+            # Obtener los valores de la fila seleccionada
+            # Rellenar los campos de entrada
+            self.id_Curso.delete(0, 'end')
+            self.id_Curso.insert(0, self.tView.item(selected_item)['text'])  
+            self.descripc_Curso.delete(0, 'end')
+            self.descripc_Curso.insert(0, self.tView.item(selected_item)['values'][0])
+
+#------------------------------------------------------------------------------------------------------------------------------------------------------
+    #Función para mostrar los inscritos con el boton consultar
     def mostrar_Inscritos(self):
         self.limpia_TreeView()
         #Seleccionar los datos de la BD
-        #parametros = (self.id_Curso.get(),)
-        query = """SELECT * FROM Inscritos ORDER BY Codigo_Curso DESC"""
+        #Obtiene el numero de inscripcion
+        inscripcion = self.num_Inscripcion.get()
+        #busqueda en base al numero de inscripcion obtenido 
+        query = f"""SELECT * FROM Inscritos WHERE No_Inscripcion = {inscripcion} ORDER BY Codigo_Curso DESC"""
         db_ColumnasCursos = self.ejecutar_consulta(query)
 
         #Insertar los datos en la tabla de la pantalla
@@ -697,7 +720,10 @@ class Inscripciones_2:
             self.tView.insert('',0,text= row[3],values = [row[1],row[4],row[5]])
             print(row)
 
+#------------------------------------------------------------------------------------------------------------------------------------------------------
+    #Función del boton consultar
     def consultar(self):
+        #Se limpian los valores del treeview
         for item in self.tView.get_children():
             self.tView.delete(item)
         
@@ -706,15 +732,44 @@ class Inscripciones_2:
         #self.limpiar_columnas_tview()
         self.columnas_consultar(columas_inscritos)        
         self.mostrar_Inscritos()
+        self.validar_Tview()
 
+#------------------------------------------------------------------------------------------------------------------------------------------------------
+    #Función para validar que funcion debe ser usada segun la cantidad de columnas
     def validar_Tview(self):
         
-        num_filas = len(self.tView.get_children())
-        if num_filas > 3:
-            self.tView.bind("<<TreeviewSelect>>", self.mostrar_Inscritos)
+        num_columnas = len(self.tView.get_children())
+        if num_columnas > 3:
+            self.tView.bind("<<TreeviewSelect>>", self.mostrar_info_inscritos)
 
         else: 
             self.tView.bind("<<TreeviewSelect>>", self.mostrar_info_cursos)
+     
+#------------------------------------------------------------------------------------------------------------------------------------------------------
+    #Función del botón editar
+    def editar(self):
+        self.validar_Tview() 
+        self.consultar() #Mostrar los cursos inscritos por numero de inscripcion
+
+    def columnas_cursos(self,nuevas_columnas):
+         # Agregar nuevas columnas al Treeview
+        self.limpiar_columnas_tView()
+        self.tView_cols = (nuevas_columnas)
+        self.tView_dcols = (nuevas_columnas)
+        self.tView.configure(columns=self.tView_cols,displaycolumns=self.tView_dcols)
+        #Recorre las columnas y asigna su nombre y tamaño 
+        for col in self.tView_cols:
+            self.tView.heading(col, anchor="w", text=(f'{col}'))
+            self.tView.column(col,anchor='w',stretch=True,width=74,minwidth=200)
+
+
+
+    def cancelar(self):
+        col_cursos = ['Descripción','Numero de horas']
+        self.limpiar_columnas_tView()
+        self.columnas_cursos(col_cursos)
+        self.mostrar_Cursos()
+
 
 
 
