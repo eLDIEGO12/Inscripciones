@@ -3,18 +3,23 @@ import tkinter.ttk as ttk
 import sqlite3 as sql
 from tkinter import messagebox
 import calendar
+from pathlib import Path
+ 
 
-
-
+#Busca el nombre del directorio actual
+PATH = str((Path(__file__).resolve()).parent) # para saber como se llama el directorio en donde está
+DB = r"/db/Inscripciones.db" # va inscrito en mayuscula porque es un parametro fijo(constante)
+ICON = r"/img/picachu.ico"
 
 
 class Inscripciones_2:
     def __init__(self, master=None):
          # Ventana principal
-        self.db_name = 'db\Inscripciones.db'# se accede directamente al directorio que almacena la base de datos, si no existe se crea,si existe accede a la database  
+        self.db_Name = PATH + DB # # esto garantiza que sin importar en que directorio me encuentre, siempre voy a encontrar en donde esta la DB
         self.win = tk.Tk(master)
         self.win.configure(background="#f7f9fd", height=600, width=800)
         self.win.geometry("800x600")
+        self.win.iconbitmap(PATH + ICON) #esto garantiza que sin importar en que directorio me encuentre, siempre voy a encontrar en donde esta el ICONO
         self.win.resizable(False, False)
         self.win.title("Inscripciones de Materias y Cursos")
         # Crea los frames
@@ -145,11 +150,17 @@ class Inscripciones_2:
 
         # Main widget
         self.mainwindow = self.win
-        #self.mainwindow.iconbitmap('img/picachu.ico') # como estamos trabajando en el mismo directorio, puedo acceder directamente a la carpeta que almacena la img
-
+         
         #Combobox Alumno
         self.cmbx_Id_Alumno = ttk.Combobox(self.frm_1, name="cmbx_id_alumno")
         self.cmbx_Id_Alumno.place(anchor="nw", width=112, x=100, y=80)
+        self.cargar_combobox()
+        
+        #Combobox  Num_Inscripcion --------------------nuevo
+        self.cmbx_Num_Inscripcion = ttk.Combobox(self.frm_1, name="cmbx_Num_Inscripcion") #ese name para que es?
+        self.cmbx_Num_Inscripcion.place(anchor="nw", width=100, x=682, y=42) # en este caso se especifica el mismo width del entry num_inscripcion 
+        self.cmbx_Num_Inscripcion_()
+
 
         #centrar ventana principal
         self.centrar_win()
@@ -167,7 +178,7 @@ class Inscripciones_2:
         self.mostrar_Cursos()#codigo compañero
         #--------------------------------------------------
 
-        self.cargar_combobox()
+        
 
 
         
@@ -207,7 +218,7 @@ class Inscripciones_2:
     
     def ejecutar_consulta(self, consulta, parametros=None):
         try:
-            with sql.connect(self.db_name) as conexion:
+            with sql.connect(self.db_Name) as conexion:
                 cursor = conexion.cursor()
                 if parametros is None:
                     cursor.execute(consulta)  # Ejecuta la consulta sin parámetros
@@ -412,6 +423,18 @@ class Inscripciones_2:
 
 
 #--------------------------------------------------------------------------------------------------------------------------
+    #combobox de num_inscripcion  --indagar
+    def cmbx_Num_Inscripcion_(self):
+        sql = """SELECT DISTINCT No_Inscripcion FROM Inscritos ORDER BY No_Inscripcion DESC"""
+        resultado = self.ejecutar_consulta(sql)
+        if resultado:
+            self.cmbx_Num_Inscripcion['values'] = [row[0] for row in resultado]
+        else:
+            self.cmbx_Num_Inscripcion['values'] = []
+
+
+
+
     #funciones para guardar inscritos***
     def guardar_inscritos(self):
         id_alumno = self.cmbx_Id_Alumno.get()
@@ -426,31 +449,31 @@ class Inscripciones_2:
                 messagebox.showerror("Guardar Inscripcion", f"ERROR, el/la estudiante: {self.apellidos.get()} ya tiene inscrita la materia: {self.descripc_Curso.get() }.") 
                 self.limpiar_entrys('4')                
             else:
-                sql = f""" SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = ? LIMIT 1"""# para verificar si el alumno ya tiene un numero de inscripcion asignado
-                num_inscripcion_existente = self.ejecutar_consulta(sql,(id_alumno,))
+                sql = """ SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = ? LIMIT 1"""# para verificar si el alumno ya tiene un numero de inscripcion asignado
+                num_inscripcion_existente = self.ejecutar_consulta(sql,(id_alumno,)) #[(None,)] , [(2,),]      
 
                 if  num_inscripcion_existente:
-                    self.guardar_Mismo_No_Inscripcion_Tabla_Inscritos(num_inscripcion_existente,id_alumno,fecha,codigo_curso,curso,horario) 
+                    self.guardar_Mismo_No_Inscripcion_Tabla_Inscritos(num_inscripcion_existente[0][0],id_alumno,fecha,codigo_curso,curso,horario) 
                 else:
                         sql2 = """ SELECT MAX(No_Inscripcion)
                         FROM Inscritos"""
-                        num_max_inscripcion = self.ejecutar_consulta(sql2)
+                        num_max_inscripcion = self.ejecutar_consulta(sql2)#[(1,)]
                         
                         sql4= """ SELECT MAX(No_Inscripcion_Usado)
                         FROM Inscritos2"""
-                        num_max_inscripcion2 = self.ejecutar_consulta(sql4)
+                        num_max_inscripcion2 = self.ejecutar_consulta(sql4)#[(2,)]
                          
                         if num_max_inscripcion[0][0]:# se accede a [(num_max_inscripcion,),] y si el valor es no None se le suma 1
-                            num_inscripcion = num_max_inscripcion[0][0] + 1 
+                            num_inscripcion = num_max_inscripcion[0][0] + 1  # 2
                             
                             if num_max_inscripcion2[0][0]:
-                                num_inscripcion = self.validar_No_Usado(num_max_inscripcion2[0][0],num_inscripcion) 
+                                num_inscripcion = self.validar_No_Usado(num_max_inscripcion2[0][0],num_inscripcion)  #3
 
                             else:
                                 pass           
                         else:
                             num_inscripcion = 1  
-                            num_inscripcion = self.validar_No_Usado(num_max_inscripcion2[0][0],num_inscripcion)
+                            num_inscripcion = self.validar_No_Usado(num_max_inscripcion2[0][0],num_inscripcion)# 
                             
                             
                         self.guardar_Nueva_Inscripcion(num_inscripcion, id_alumno, fecha, codigo_curso, curso, horario)
@@ -468,22 +491,22 @@ class Inscripciones_2:
         id_alumno = id_alumno
         codigo_curso = codigo_curso
 
-        sql = f""" SELECT Codigo_Curso FROM Inscritos WHERE Id_Alumno = ? """
-        info_inscripciones = self.ejecutar_consulta(sql,(id_alumno,))
-        #print(info_inscripciones)
+        sql = """ SELECT Codigo_Curso FROM Inscritos WHERE Id_Alumno = ? """
+        info_inscripciones = self.ejecutar_consulta(sql,(id_alumno,)) # [(100,),(100b,),] ,   [(None,),]
+            #print(info_inscripciones)
         
-        for curso in info_inscripciones:# se itera en cada tupla retornada por ejecutar_consulta()
+        for curso in info_inscripciones:# se itera en cada tupla retornada por ejecutar_consulta(), [(100,),(110b,),]
             if curso[0] == codigo_curso: # se compara la posicion sub0 de la tupla la cual esta siendo iterada
              return True  # El alumno ya está inscrito en este curso
             else:
                 return False  # El alumno no está inscrito en este curso
 
     def validar_No_Usado(self,num_max_inscripcion2,num_inscripcion):
-        sql3= """SELECT No_Inscripcion_Usado FROM Inscritos2"""
-        num_inscripciones_usadas= self.ejecutar_consulta(sql3)
+        sql3= """SELECT No_Inscripcion_Usado FROM Inscritos2""" 
+        num_inscripciones_usadas= self.ejecutar_consulta(sql3)#[(2,)] , #[(None,)]
         
         for no_Usado in num_inscripciones_usadas:# se itera en cada tupla retornada por ejecutar_consulta()
-            if no_Usado[0] == num_inscripcion and num_max_inscripcion2:# se compara la posicion sub0 de la tupla la cual esta siendo iterada..
+            if no_Usado[0] == num_inscripcion :# se compara la posicion sub0 de la tupla la cual esta siendo iterada..
                 num_inscripcion = num_max_inscripcion2 + 1##
             else: 
                 pass
@@ -499,7 +522,6 @@ class Inscripciones_2:
         self.num_Inscripcion.insert(0,num_inscripcion) 
         
     def guardar_Mismo_No_Inscripcion_Tabla_Inscritos(self,num_inscripcion_existente,id_alumno,fecha,codigo_curso,curso,horario):
-        num_inscripcion_existente = num_inscripcion_existente[0][0]#[(num_inscripcion,)] se extrae el num_inscripcion
         sql3 = f""" INSERT INTO Inscritos(No_Inscripcion,Id_Alumno,Fecha_Inscripcion,Codigo_Curso,Curso,Horario)
                         VALUES(?,?,?,?,?,?) """
         self.ejecutar_consulta(sql3,(num_inscripcion_existente,id_alumno,fecha,codigo_curso,curso,horario))
@@ -655,12 +677,12 @@ class Inscripciones_2:
 
     #antes de eliminar la inscripcion total del alumno, se procede a acceder a su numero de inscripción para que no vuelva a ser usada
     def obtener_No_Inscripcion_del_alumno(self, id_alumno):
-        sql2 = f"""SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = '{id_alumno}' LIMIT 1"""
-        no_Inscripcion_A_Eliminar = self.ejecutar_consulta(sql2)
+        sql2 = f"""SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = ? LIMIT 1"""
+        no_Inscripcion_A_Eliminar = self.ejecutar_consulta(sql2,(id_alumno,))
         if no_Inscripcion_A_Eliminar:
             no_Inscripcion_A_Eliminar = no_Inscripcion_A_Eliminar[0][0]
-            sql3 = f"""INSERT INTO Inscritos2(No_Inscripcion_Usado) VALUES({no_Inscripcion_A_Eliminar})"""
-            self.ejecutar_consulta(sql3)
+            sql3 = f"""INSERT INTO Inscritos2(No_Inscripcion_Usado) VALUES(?)"""
+            self.ejecutar_consulta(sql3,(no_Inscripcion_A_Eliminar,))
             
 #------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -765,7 +787,7 @@ class Inscripciones_2:
         self.columnas_cursos(col_cursos)
         self.mostrar_Cursos()
 
-
+    
 
 
 
