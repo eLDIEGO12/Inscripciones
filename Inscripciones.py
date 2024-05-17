@@ -160,6 +160,14 @@ class Inscripciones_2:
         self.cmbx_Num_Inscripcion = ttk.Combobox(self.frm_1, name="cmbx_Num_Inscripcion") #ese name para que es?
         self.cmbx_Num_Inscripcion.place(anchor="nw", width=100, x=682, y=42) # en este caso se especifica el mismo width del entry num_inscripcion 
         self.cmbx_Num_Inscripcion_()
+        #combobox de num_inscripcion  --indagar
+    def cmbx_Num_Inscripcion_(self):
+        sql = """SELECT DISTINCT No_Inscripcion FROM Inscritos ORDER BY No_Inscripcion DESC"""
+        resultado = self.ejecutar_consulta(sql)
+        if resultado:
+            self.cmbx_Num_Inscripcion['values'] = [row[0] for row in resultado]
+        else:
+            self.cmbx_Num_Inscripcion['values'] = []
 
 
         #centrar ventana principal
@@ -423,14 +431,7 @@ class Inscripciones_2:
 
 
 #--------------------------------------------------------------------------------------------------------------------------
-    #combobox de num_inscripcion  --indagar
-    def cmbx_Num_Inscripcion_(self):
-        sql = """SELECT DISTINCT No_Inscripcion FROM Inscritos ORDER BY No_Inscripcion DESC"""
-        resultado = self.ejecutar_consulta(sql)
-        if resultado:
-            self.cmbx_Num_Inscripcion['values'] = [row[0] for row in resultado]
-        else:
-            self.cmbx_Num_Inscripcion['values'] = []
+    
 
 
 
