@@ -151,6 +151,13 @@ class Inscripciones_2:
         self.widget_eliminar = None
         self.editando = False
 
+        #Combobox  Num_Inscripcion --------------------nuevo
+        self.cmbx_Num_Inscripcion = ttk.Combobox(self.frm_1, name="cmbx_Num_Inscripcion") #ese name para que es?
+        self.cmbx_Num_Inscripcion.place(anchor="nw", width=100, x=682, y=42) # en este caso se especifica el mismo width del entry num_inscripcion 
+        self.cmbx_Num_Inscripcion_()
+        
+    
+
         #centrar ventana principal
         self.centrar_win()
 
@@ -404,18 +411,18 @@ class Inscripciones_2:
                 self.limpiar_entrys('4')                
             else:
                 sql = f""" SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = ? LIMIT 1"""# para verificar si el alumno ya tiene un numero de inscripcion asignado
-                num_inscripcion_existente = self.ejecutar_consulta(sql,(id_alumno,))
+                num_inscripcion_existente = self.ejecutar_consulta(sql,(id_alumno,)) #[(None,),]
 
                 if  num_inscripcion_existente:
                     self.guardar_Mismo_No_Inscripcion_Tabla_Inscritos(num_inscripcion_existente,id_alumno,fecha,codigo_curso,curso,horario) 
                 else:
                         sql2 = """ SELECT MAX(No_Inscripcion)
                         FROM Inscritos"""
-                        num_max_inscripcion = self.ejecutar_consulta(sql2)
+                        num_max_inscripcion = self.ejecutar_consulta(sql2) #[(3,),]
                         
                         sql4= """ SELECT MAX(No_Inscripcion_Usado)
                         FROM Inscritos2"""
-                        num_max_inscripcion2 = self.ejecutar_consulta(sql4)
+                        num_max_inscripcion2 = self.ejecutar_consulta(sql4)#[()]
                          
                         if num_max_inscripcion[0][0]:# se accede a [(num_max_inscripcion,),] y si el valor es no None se le suma 1
                             num_inscripcion = num_max_inscripcion[0][0] + 1 
@@ -430,6 +437,8 @@ class Inscripciones_2:
                             num_inscripcion = self.validar_No_Usado(num_max_inscripcion2[0][0],num_inscripcion)
                             
                         self.guardar_Nueva_Inscripcion(num_inscripcion, id_alumno, fecha, codigo_curso, curso, horario)
+                        self.cmbx_Num_Inscripcion_()
+                        self.limpiar_columnas_tView()
         else:
             messagebox.showerror("Guardar Inscripcion", "Por favor complete todos los campos.")
 
@@ -445,7 +454,7 @@ class Inscripciones_2:
         codigo_curso = codigo_curso
 
         sql = f""" SELECT Codigo_Curso FROM Inscritos WHERE Id_Alumno = ? """
-        info_inscripciones = self.ejecutar_consulta(sql,(id_alumno,))
+        info_inscripciones = self.ejecutar_consulta(sql,(id_alumno,)) #[(None,)] , [(100b,),(100,)]
         #print(info_inscripciones)
         
         for curso in info_inscripciones:# se itera en cada tupla retornada por ejecutar_consulta()
@@ -475,10 +484,9 @@ class Inscripciones_2:
         self.num_Inscripcion.insert(0,num_inscripcion) 
         
     def guardar_Mismo_No_Inscripcion_Tabla_Inscritos(self,num_inscripcion_existente,id_alumno,fecha,codigo_curso,curso,horario):
-        num_inscripcion_existente = num_inscripcion_existente[0][0]#[(num_inscripcion,)] se extrae el num_inscripcion
         sql3 = f""" INSERT INTO Inscritos(No_Inscripcion,Id_Alumno,Fecha_Inscripcion,Codigo_Curso,Curso,Horario)
                         VALUES(?,?,?,?,?,?) """
-        self.ejecutar_consulta(sql3,(num_inscripcion_existente,id_alumno,fecha,codigo_curso,curso,horario))
+        self.ejecutar_consulta(sql3,(num_inscripcion_existente[0][0],id_alumno,fecha,codigo_curso,curso,horario)) #[(2,)] se extrae el num_inscripcion
         messagebox.showinfo("Guardar Inscripcion", "La inscripcion se guardo satisfactoriamente.")
         self.limpiar_entrys('4')
         self.limpiar_entrys('3')#limpia el entry num_inscripcion para que se actualice correctamente
@@ -691,6 +699,15 @@ class Inscripciones_2:
             no_Inscripcion_A_Eliminar = no_Inscripcion_A_Eliminar[0][0]
             sql3 = "INSERT INTO Inscritos2(No_Inscripcion_Usado) VALUES(?)"
             self.ejecutar_consulta(sql3,(id_alumno,))
+
+    def cmbx_Num_Inscripcion_(self):
+        sql = """SELECT DISTINCT No_Inscripcion FROM Inscritos ORDER BY No_Inscripcion DESC"""
+        resultado = self.ejecutar_consulta(sql)
+        self.cmbx_Num_Inscripcion.delete(0, 'end')
+        if resultado:
+            self.cmbx_Num_Inscripcion['values'] = [row[0] for row in resultado]
+        else:
+            self.cmbx_Num_Inscripcion['values'] = []
             
 #----------------------------------------------------------------------------------------------------------------------------------------------------
     #Función para vaciar el treeview
