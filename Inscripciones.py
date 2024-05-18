@@ -308,7 +308,7 @@ class Inscripciones_2:
     def cargar_combobox(self):#
         #cargarCombobox
         sql="""SELECT id_Alumno FROM Alumnos"""
-        filas = self.ejecutar_consulta(sql)
+        filas = self.ejecutar_consulta(sql) #[(8,),(9,)]
         
         llave= []
         for fila in filas:
@@ -451,24 +451,24 @@ class Inscripciones_2:
                 self.limpiar_entrys('4')                
             else:
                 sql = """ SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = ? LIMIT 1"""# para verificar si el alumno ya tiene un numero de inscripcion asignado
-                num_inscripcion_existente = self.ejecutar_consulta(sql,(id_alumno,)) #[(None,)] , [(2,),]      
+                num_inscripcion_existente = self.ejecutar_consulta(sql,(id_alumno,)) #[(None,)] , [(3,),]      
 
                 if  num_inscripcion_existente:
                     self.guardar_Mismo_No_Inscripcion_Tabla_Inscritos(num_inscripcion_existente[0][0],id_alumno,fecha,codigo_curso,curso,horario) 
                 else:
                         sql2 = """ SELECT MAX(No_Inscripcion)
                         FROM Inscritos"""
-                        num_max_inscripcion = self.ejecutar_consulta(sql2)#[(1,)]
+                        num_max_inscripcion = self.ejecutar_consulta(sql2)#[(7,)]
                         
                         sql4= """ SELECT MAX(No_Inscripcion_Usado)
                         FROM Inscritos2"""
-                        num_max_inscripcion2 = self.ejecutar_consulta(sql4)#[(2,)]
+                        num_max_inscripcion2 = self.ejecutar_consulta(sql4)#[(8,)]
                          
-                        if num_max_inscripcion[0][0]:# se accede a [(num_max_inscripcion,),] y si el valor es no None se le suma 1
-                            num_inscripcion = num_max_inscripcion[0][0] + 1  # 2
+                        if num_max_inscripcion[0][0]:# se accede a [(6,),] y si el valor es no None se le suma 1
+                            num_inscripcion = num_max_inscripcion[0][0] + 1  # 8
                             
                             if num_max_inscripcion2[0][0]:
-                                num_inscripcion = self.validar_No_Usado(num_max_inscripcion2[0][0],num_inscripcion)  #3
+                                num_inscripcion = self.validar_No_Usado(num_max_inscripcion2[0][0],num_inscripcion) #9
 
                             else:
                                 pass           
@@ -502,13 +502,13 @@ class Inscripciones_2:
             else:
                 return False  # El alumno no está inscrito en este curso
 
-    def validar_No_Usado(self,num_max_inscripcion2,num_inscripcion):
+    def validar_No_Usado(self,num_max_inscripcion2,num_inscripcion): #8
         sql3= """SELECT No_Inscripcion_Usado FROM Inscritos2""" 
-        num_inscripciones_usadas= self.ejecutar_consulta(sql3)#[(2,)] , #[(None,)]
+        num_inscripciones_usadas= self.ejecutar_consulta(sql3)#[(1,),(2,),(5,),(6,),(8,)] 
         
         for no_Usado in num_inscripciones_usadas:# se itera en cada tupla retornada por ejecutar_consulta()
             if no_Usado[0] == num_inscripcion :# se compara la posicion sub0 de la tupla la cual esta siendo iterada..
-                num_inscripcion = num_max_inscripcion2 + 1##
+                num_inscripcion = num_max_inscripcion2 + 1## 9
             else: 
                 pass
         return num_inscripcion
@@ -587,7 +587,7 @@ class Inscripciones_2:
     #estudiar codigo de compañero***
     #Funciones para el entry fecha
     def borrar_fecha(self, event):
-        self.fecha.delete(0, tk.END)
+        self.fecha.delete(0, 'end')
 
     def validar_fecha(self, event):
         fecha = self.fecha.get()
