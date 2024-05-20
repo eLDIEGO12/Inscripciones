@@ -15,7 +15,7 @@ ICON = r"/img/picachu.ico"
 class Inscripciones_2:
     def __init__(self, master=None):
          # Ventana principal
-        self.db_Name = PATH + DB # # esto garantiza que sin importar en que directorio me encuentre, siempre voy a encontrar en donde esta la DB
+        self.db_Name = PATH + DB # esto garantiza que sin importar en que directorio me encuentre, siempre voy a encontrar en donde esta la DB
         self.win = tk.Tk(master)
         self.win.configure(background="#f7f9fd", height=600, width=800)
         self.win.geometry("800x600")
