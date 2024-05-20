@@ -808,11 +808,12 @@ class Inscripciones_2:
 
         if id_curso.strip() == "" or descripc_Curso.strip() == "" or horario.strip() == "":
             messagebox.showerror("Error al Editar","Asegurese de tener los campos de curso completos")
-            self.consultar()
+            #self.consultar()
             return
         
         if not self.validar_doble_inscripcion(id_alumno, id_curso): 
             messagebox.showerror("Error al Editar","No puede editar un curso al que no pertenece")
+            self.limpiar_entrys('inscripcion_S')
             return
         
         if not self.editando:
