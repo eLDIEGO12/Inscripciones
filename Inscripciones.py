@@ -3,20 +3,25 @@ import tkinter.ttk as ttk
 import sqlite3 as sql
 from tkinter import messagebox
 import calendar
+from  pathlib import Path
 
 
+PATH =str((Path(__file__).resolve()).parent)# para saber como se llama el directorio en donde está
+#subdirs = [subdir.name for subdir in Path(PATH).iterdir() if subdir.is_dir()]
+#print(subdirs)
+ICON = r"/img/picachu.ico" # va inscrito en mayuscula porque es un parametro fijo(constante)
 
-
-
+DB = r"/DB/Inscripciones.db"
 class Inscripciones_2:
     def __init__(self, master=None):
          # Ventana principal
-        self.db_name = 'db\Inscripciones.db'# se accede directamente al directorio que almacena la base de datos, si no existe se crea,si existe accede a la database  
+        self.db_Name = PATH + DB# esto garantiza que sin importar en que directorio me encuentre, siempre voy a encontrar en donde esta la DB
         self.win = tk.Tk(master)
         self.win.configure(background="#f7f9fd", height=600, width=800)
         self.win.geometry("800x600")
         self.win.resizable(False, False)
         self.win.title("Inscripciones de Materias y Cursos")
+        self.win.iconbitmap(PATH + ICON )# esto garantiza que sin importar en que directorio me encuentre, siempre voy a encontrar en donde esta la img
         # Crea los frames
         self.frm_1 = tk.Frame(self.win, name="frm_1")
         self.frm_1.configure(background="#f7f9fd", height=600, width=800)
@@ -142,7 +147,7 @@ class Inscripciones_2:
 
         # Main widget
         self.mainwindow = self.win
-        self.mainwindow.iconbitmap('img/picachu.ico') # como estamos trabajando en el mismo directorio, puedo acceder directamente a la carpeta que almacena la img
+       
 
         #Combobox Alumno
         self.cmbx_Id_Alumno = ttk.Combobox(self.frm_1, name="cmbx_id_alumno")
@@ -202,7 +207,7 @@ class Inscripciones_2:
     
     def ejecutar_consulta(self, consulta, parametros=None):
         try:
-            with sql.connect(self.db_name) as conexion:
+            with sql.connect(self.db_Name) as conexion:
                 cursor = conexion.cursor()
                 if parametros is None:
                     cursor.execute(consulta)  # Ejecuta la consulta sin parámetros
