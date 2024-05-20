@@ -32,7 +32,7 @@ class Inscripciones_2:
          #Label No. Inscripción
         self.lblNoInscripcion.place(anchor="nw", x=680, y=20)
         #Entry No. Inscripción
-        self.num_Inscripcion = ttk.Entry(self.frm_1, name="num_inscripcion")
+        self.num_Inscripcion = ttk.Entry(self.frm_1, name="num_inscripcion") # esto no es necesario ---------------
         self.num_Inscripcion.configure(justify="right")
         self.num_Inscripcion.place(anchor="nw", width=100, x=682, y=42)
         
@@ -54,16 +54,16 @@ class Inscripciones_2:
         self.lblNombres.configure(text='Nombre(s):')
         self.lblNombres.place(anchor="nw", x=20, y=130)
         #Entry Alumno
-        self.nombres_Var= ttk.Entry(self.frm_1, name="nombres")
-        self.nombres = ttk.Entry(self.frm_1, name="nombres", textvariable= self.nombres_Var)
+        self.nombres= ttk.Entry(self.frm_1, name="nombres")
+        self.nombres = ttk.Entry(self.frm_1, name="nombres", textvariable= self.nombres)
         self.nombres.place(anchor="nw", width=200, x=100, y=130)
         #Label Apellidos
         self.lblApellidos = ttk.Label(self.frm_1, name="lblapellidos")
         self.lblApellidos.configure(text='Apellido(s):')
         self.lblApellidos.place(anchor="nw", x=400, y=130)
         #Entry Apellidos
-        self.apellidos_Var= ttk.Entry(self.frm_1, name="apellidos")
-        self.apellidos = ttk.Entry(self.frm_1, textvariable = self.apellidos_Var)
+        self.apellidos= ttk.Entry(self.frm_1, name="apellidos")
+        self.apellidos = ttk.Entry(self.frm_1, textvariable = self.apellidos)
         self.apellidos.place(anchor="nw", width=200, x=485, y=130)
         #Label Curso
         self.lblIdCurso = ttk.Label(self.frm_1, name="lblidcurso")
@@ -93,27 +93,32 @@ class Inscripciones_2:
         self.horario.place(anchor="nw", width=100, x=680, y=185)
 
         ''' Botones  de la Aplicación'''
-        #Botón Guardar
+        style = ttk.Style()
+        # Configuramos el estilo para el botón
+        style.configure("Bold.TButton", font=("Arial", 10, "bold"),background="blue")
+        
+
+        #Botón Guardar 
         self.btnGuardar = ttk.Button(self.frm_1, name="btnguardar",command= self.guardar_inscritos)
-        self.btnGuardar.configure(text='Guardar')
-        self.btnGuardar.place(anchor="nw", x=150, y=260)
+        self.btnGuardar.configure( text='Guardar', cursor="hand2", style="Bold.TButton")
+        self.btnGuardar.place(anchor="nw", x=150, y=260,width=100, height=35)
         
         #Botón Editar
         self.btnEditar = ttk.Button(self.frm_1, name="btneditar",command = self.editar_curso)
-        self.btnEditar.configure(text='Editar')
-        self.btnEditar.place(anchor="nw", x=250, y=260)
+        self.btnEditar.configure(text='Editar',cursor="hand2", style="Bold.TButton")
+        self.btnEditar.place(anchor="nw", x=250, y=260, width=100, height=35)
         #Botón Eliminar
         self.btnEliminar = ttk.Button(self.frm_1, name="btneliminar", command= self.abrir_widget_eliminar)
-        self.btnEliminar.configure(text='Eliminar')
-        self.btnEliminar.place(anchor="nw", x=350, y=260)
+        self.btnEliminar.configure(text='Eliminar', cursor="hand2", style="Bold.TButton")
+        self.btnEliminar.place(anchor="nw", x=350, y=260, width=100, height=35)
         #Botón Cancelar
         self.btnCancelar = ttk.Button(self.frm_1, name="btncancelar", command = self.cancelar)
-        self.btnCancelar.configure(text='Cancelar')
-        self.btnCancelar.place(anchor="nw", x=450, y=260)
+        self.btnCancelar.configure(text='Cancelar', cursor="hand2", style="Bold.TButton")
+        self.btnCancelar.place(anchor="nw", x=450, y=260, width=100, height=35)
         #Botón Consultar
         self.btnConsultar= ttk.Button(self.frm_1, name="btnconsultar",command = self.consultar)
-        self.btnConsultar.configure(text='Consultar')
-        self.btnConsultar.place(anchor="nw", x=550, y=260)
+        self.btnConsultar.configure(text='Consultar', cursor="hand2", style="Bold.TButton")
+        self.btnConsultar.place(anchor="nw", x=550, y=260, width=100, height=35)
         #Separador
         separator1 = ttk.Separator(self.frm_1)
         separator1.configure(orient="horizontal")
@@ -121,7 +126,7 @@ class Inscripciones_2:
 
         ''' Treeview de la Aplicación'''
         #Treeview
-        self.tView = ttk.Treeview(self.frm_1, name="tview")
+        self.tView = ttk.Treeview(self.frm_1, name="tview",)
         self.tView.configure(selectmode="extended")
         #Columnas del Treeview
         self.tView_cols = ['tV_descripción','horas']
@@ -131,6 +136,7 @@ class Inscripciones_2:
         self.tView.column("tV_descripción",anchor="w",stretch=True,width=200,minwidth=50)
         self.tView.column("horas",anchor="w",stretch=True,width=200,minwidth=50)
         #Cabeceras
+        style.configure("Treeview.Heading")
         self.tView.heading("#0", anchor="w", text='Curso')
         self.tView.heading("tV_descripción", anchor="w", text='Descripción')
         self.tView.heading("horas", anchor="w", text='Numero de Horas')
@@ -152,6 +158,7 @@ class Inscripciones_2:
         #Combobox Alumno
         self.cmbx_Id_Alumno = ttk.Combobox(self.frm_1, name="cmbx_id_alumno")
         self.cmbx_Id_Alumno.place(anchor="nw", width=112, x=100, y=80)
+        
         #Widget de eliminar
         self.widget_eliminar = None
         self.editando = False
@@ -173,7 +180,7 @@ class Inscripciones_2:
         self.tabla_cursos()
         self.tabla_inscritos()
         self.tabla_inscritos2()
-        self.dato_prueba()#tener presente el orden de ejecucion
+        
 
         #-----------------------------------------------------
         self.mostrar_Cursos()#codigo compañero
@@ -183,7 +190,7 @@ class Inscripciones_2:
 
         #----------------------------------------------------------------------------------
              #lo que hace es ejecutar una busqueda en la tabla Alummos cada vez que el usario presione una tecla y llena los entrys apellidos y nombres si lo suministrado en el campo existe en la db***
-        self.cmbx_Id_Alumno.bind("<KeyRelease>", self.leer_campo_combobox) 
+        self.cmbx_Id_Alumno.bind("<KeyRelease>", self.mostrar_info_alumno) 
         #-----------------------------------------------------------------------------------
           #al seleccionar algun id de la lista desplegable llena los entrys apellidos nombres y apellidos 
         self.cmbx_Id_Alumno.bind("<<ComboboxSelected>>", self.mostrar_info_alumno) 
@@ -191,7 +198,7 @@ class Inscripciones_2:
         #-----------------------------------------------------------------------------------
           #lo que hace es ejecutar una busqueda en la tabla Cursos cada vez que el usario presione una tecla y llena el entry descripc_Curso o id_Curso
         self.descripc_Curso.bind("<KeyRelease>", self.buscar_id_curso)
-        self.id_Curso.bind("<KeyRelease>", self.buscar_descripCurso)
+        self.id_Curso.bind("<KeyRelease>", self.buscar_descrip_Curso)
         
         #-----------------------------------------------------------------------------------
         self.fecha.bind("<FocusIn>", self.borrar_fecha) #Al hacer click se borra el texto por defect
@@ -277,11 +284,7 @@ class Inscripciones_2:
         self.ejecutar_consulta(sql)
 
 
-    def dato_prueba(self):#insercion de prueba el OR REPLACE lo que hace es ignorar la primary key y actualiza(cambia) los valores de las columnas
-        sql = """INSERT OR REPLACE INTO Alumnos(id_Alumno,id_Carrera,Nombres,Apellidos,Fecha_Ingreso,
-        Direccion,Telef_Cel,Telef_Fijo,Ciudad,Departamento)
-        VALUES('23','A0100I','PAULA SUSANA','CANTILLO RODRIGUEZ','25/02/2023','carrera5-b11','3212345635',
-        '3112841561','leticia','amazonas' )""" 
+    
 
         self.ejecutar_consulta(sql)
 
@@ -290,35 +293,34 @@ class Inscripciones_2:
         sql="""SELECT id_Alumno FROM Alumnos"""
         filas = self.ejecutar_consulta(sql)
         
-        llave= []
-        for fila in filas:
-            llaves= fila[0]
-            llave.append(llaves)
-        self.cmbx_Id_Alumno["values"] = llave
+        if filas:
+            self.cmbx_Id_Alumno['values'] = [row[0] for row in filas]
+        else:
+            self.cmbx_Id_Alumno['values'] = []
 
     def limpiar_entrys(self,opcion):
-        #entrys nombre,apellido
+        
         #-----------------------------------------------------
         # esto es exclusivamente creado para las funcion buscar_id_curso
-        if opcion == '1':
+        if opcion == 'buscar_descrip_Curso':
             self.descripc_Curso.delete(0,'end')
             self.horario.delete(0,'end')
         # esto es exclusivamente creado para las funcion buscar_descripcCurso 
-        elif opcion == '2':
+        elif opcion == 'buscar_id_curso':
             self.id_Curso.delete(0,'end')
             self.horario.delete(0,'end')
         #esto es exclusivamente creado para que cuando guardar_inscritos() se realice correctamente elimine lo que haya en el entry num_Inscripcion y se ejecute entry_num_inscripcion()
-        elif opcion == '3':
-            self.num_Inscripcion.delete(0,'end')
-        #esto es exclusivamente creado para que cuando al guardar satisfactoriamente o cuando pase todo lo contrario los entrys descrip,id_curso,horario se limpien.
-        elif opcion == '4':
+        elif opcion == 'actualizar_num_inscripcion':
+            self.cmbx_Num_Inscripcion.delete(0,'end')
+        #para cuando la inscripcion sea satisfactoria o lo contrario y tambien para una eliminacion exitosa 
+        elif opcion == 'inscripcion_S':
             self.id_Curso.delete(0,'end')
             self.descripc_Curso.delete(0,'end')
             self.horario.delete(0,'end')
         #------------------------------------------------------
-        else:
-            self.apellidos_Var.delete(0,'end') # tambien es posible implementar o acceder a manipular los entrys mediante StringVar()
-            self.nombres_Var.delete(0,'end')
+        elif opcion == 'nombres,apellidos':
+            self.apellidos.delete(0,'end') 
+            self.nombres.delete(0,'end')
 
     def mostrar_info_alumno(self,event): # en self.cmbx_Id_Alumno.bind("<<ComboboxSelected>>", self.mostrar_info_alumno ) .bin espera un parametro event como parametro de la funcion, sin el event en la funcion da error
         id_alumno = self.cmbx_Id_Alumno.get()
@@ -326,41 +328,44 @@ class Inscripciones_2:
         # Obtener la información del alumno seleccionado de la base de datos
         sql =f"""SELECT Nombres,Apellidos FROM Alumnos WHERE id_Alumno = ?"""
         info_alumno = self.ejecutar_consulta(sql,(id_alumno,)) # el ejecutar_consulta,fetchall retorna una lista de  tuplas, es decir info_alumno contiene = [(Nombres,Apellidos)]
-        #funcion que limpie los campos
-        self.limpiar_entrys(7)
+        #funcion que limpie los campos- se usa .config(state='normal') porque existe la probabilidad de que los campos nombres,apellidos estén disponibles. 
+        self.nombres.config(state='normal')
+        self.apellidos.config(state='normal')
+        self.limpiar_entrys('nombres,apellidos')
+        self.borrar_fecha(None)
+        self.fecha.insert(0,"dd/mm/aaaa")# para que cuando se seleccione otro estudiante no aparezca la fecha del ultimo inscrito
+        
 
         #actualiza el entry num_inscripcion si el alumno ya tiene un num_inscripcion***--------------esto es nuevo
         sql4 = f""" SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = ? LIMIT 1"""
         num_inscripcion_existente = self.ejecutar_consulta(sql4,(id_alumno,))
-        if num_inscripcion_existente:
-            num_inscripcion_existente = num_inscripcion_existente[0][0]#
-            self.limpiar_entrys('3')
-            self.num_Inscripcion.insert(0, num_inscripcion_existente)
-        else:
-            self.limpiar_entrys('3')
-
-        #funcion que cargue los campos despues de seleccionar un id_alumno
         
-        nombres, apellidos = info_alumno[0]  #se procede a desempaquetar, se elige hacer esta manera porque es seguro que el id_alumno seleccionado siempre va tener nombres y apellidos,utilizando la asignación múltiple.
-        self.nombres.insert(0, nombres)  # Insertar el nombre en el Entry "nombres"
-        self.apellidos.insert(0, apellidos) #Insertar el apellido en el Entry "apellidos"
-
-    def leer_campo_combobox(self,event):#permite leer las entradas(click en alguna tecla) y buscar mediante el id si existe el alumno en la base de datos 
-        id_alumno = self.cmbx_Id_Alumno.get()
-
-        sql =f"""SELECT Nombres,Apellidos FROM Alumnos WHERE id_Alumno = ?"""
-
-        #se valida si la entrada son numeros
-        
-        info_alumno = self.ejecutar_consulta(sql,(id_alumno,)) # el ejecutar_consulta,fetchall retorna una lista de  tuplas, es decir info_alumno contiene = [(Nombres,Apellidos)]
-        #funcion que limpie los campos
-        self.limpiar_entrys(7)
-        if info_alumno:# si los numeros suministrados existen como id , se ejecuta la siguiente isntruccion
-            nombres, apellidos = info_alumno[0]#se procede a desempaquetar, se elige hacer esta manera porque es seguro que el id_alumno seleccionado siempre va tener nombres y apellidos,utilizando la asignación múltiple
+        if info_alumno:  # Si el id_alumno es encontrado
+            nombres, apellidos = info_alumno[0]  # Desempaquetar
             self.nombres.insert(0, nombres)  # Insertar el nombre en el Entry "nombres"
-            self.apellidos.insert(0, apellidos) #Insertar el apellido en el Entry "apellidos"
+            self.apellidos.insert(0, apellidos)  # Insertar el apellido en el Entry "apellidos"
+            self.nombres.config(state='disabled')
+            self.apellidos.config(state='disabled')
+            if num_inscripcion_existente:
+                num_inscripcion_existente = num_inscripcion_existente[0][0]
+                self.limpiar_entrys('actualizar_num_inscripcion')
+                self.cmbx_Num_Inscripcion.insert(0, num_inscripcion_existente)
+            else:
+                self.limpiar_entrys('actualizar_num_inscripcion')
         else:
-            self.limpiar_entrys(7)
+            self.nombres.config(state='normal')
+            self.apellidos.config(state='normal')
+            self.limpiar_entrys('nombres,apellidos')
+            self.limpiar_entrys('actualizar_num_inscripcion')
+            
+            
+
+        
+        
+        
+        
+
+    
 
     def centrar_win(self):
         self.mainwindow.update_idletasks()#indagar mas sobre this
@@ -373,33 +378,33 @@ class Inscripciones_2:
 
 #------------------------------------------------------------------------------------------------------------------------------------------
     #llenar campos entrys con el mismo enfoque del combobox(llenar campos) pero con "<KeyRelease>" como primer parametro de .bind
-    def buscar_descripCurso(self,event):
+    def buscar_descrip_Curso(self,event):
         id_curso = self.id_Curso.get()
         sql = f"""SELECT Descrip_Curso,Num_Horas FROM Cursos WHERE Codigo_Curso = ? """ #importante que las comillas vayan en {} porque si la entrada son ejemplo 10 y b , sql lo tomara como entero+string y id_curso no admite numeros admie strings
         info_alumno = self.ejecutar_consulta(sql,(id_curso,)) # el ejecutar_consulta,fetchall retorna una lista de  tuplas, es decir info_alumno contiene = [(Nombres,Apellidos)]
         
-        self.limpiar_entrys('1')
+        self.limpiar_entrys('buscar_descrip_Curso')
         if info_alumno:#si el id_curso es encontrado cumple la condicion y luego se le asignara el valor a descripc_Curso,num_horas ,es decir, la tupla que retorno ejecutar_consulta() estará almacenada en descripc_Curso,num_horas
             descripc_Curso,num_horas= info_alumno[0]  #se procede a desempaquetar, se elige hacer de esta manera porque es seguro que al ejecutar la consulta el fetchall retorna [(descripc_curso,Num_Horas)], se usa asignacion multiple
             self.descripc_Curso.insert(0, descripc_Curso) 
             self.horario.insert(0,num_horas)
          
         else:
-            self.limpiar_entrys('1')
+            self.limpiar_entrys('buscar_descrip_Curso')#ejemplo: digamos que el estudiante digitó 100, y listo ,la materia existe y se llenan los campos, pero si el estudiante borra ese 100 y lo digita de nuevo se imprimirá encima, para ese caso está el else
         
     def buscar_id_curso(self,event):
         descripc_Curso = self.descripc_Curso.get()
         sql = f"""SELECT Codigo_Curso,Num_Horas FROM Cursos WHERE Descrip_Curso = ?"""
 
         info_alumno = self.ejecutar_consulta(sql,(descripc_Curso,)) # el ejecutar_consulta,fetchall retorna una lista de  tuplas, es decir info_alumno contiene = [(Nombres,Apellidos)]
-        self.limpiar_entrys('2')
+        self.limpiar_entrys('buscar_id_curso')
         if info_alumno:
             codigo_curso,num_horas = info_alumno[0]#se procede a desempaquetar, se elige hacer de esta manera porque es seguro que al ejecutar la consulta el fetchall retorna [(descripc_curso,Num_Horas)], se usa asignacion multiple
             self.id_Curso.insert(0,codigo_curso)
             self.horario.insert(0,num_horas)
 
         else:
-            self.limpiar_entrys('2')
+            self.limpiar_entrys('buscar_id_curso')
 
 
 #--------------------------------------------------------------------------------------------------------------------------
@@ -413,7 +418,7 @@ class Inscripciones_2:
         if self.validar_campos_completos(id_alumno,fecha,codigo_curso):
             if self.validar_doble_inscripcion(id_alumno,codigo_curso):
                 messagebox.showerror("Guardar Inscripcion", f"ERROR, el/la estudiante: {self.apellidos.get()} ya tiene inscrita la materia: {self.descripc_Curso.get() }.") 
-                self.limpiar_entrys('4')                
+                self.limpiar_entrys('inscripcion_S')                
             else:
                 sql = f""" SELECT No_Inscripcion FROM Inscritos WHERE Id_Alumno = ? LIMIT 1"""# para verificar si el alumno ya tiene un numero de inscripcion asignado
                 num_inscripcion_existente = self.ejecutar_consulta(sql,(id_alumno,)) #[(None,),]
@@ -442,13 +447,14 @@ class Inscripciones_2:
                             num_inscripcion = self.validar_No_Usado(num_max_inscripcion2[0][0],num_inscripcion)
                             
                         self.guardar_Nueva_Inscripcion(num_inscripcion, id_alumno, fecha, codigo_curso, curso, horario)
-                        self.cmbx_Num_Inscripcion_()
+                        
+                        
                         self.limpiar_columnas_tView()
         else:
             messagebox.showerror("Guardar Inscripcion", "Por favor complete todos los campos.")
 
-    def validar_campos_completos(self,id_alumno,fecha,codigo_curso):
-        if id_alumno and fecha and codigo_curso and self.validar_fecha():
+    def validar_campos_completos(self,id_alumno,fecha,codigo_curso,):
+        if id_alumno and fecha != "dd/mm/aaaa" and codigo_curso :
             return True
         else:
             return False
@@ -473,7 +479,7 @@ class Inscripciones_2:
         num_inscripciones_usadas= self.ejecutar_consulta(sql3)
         
         for no_Usado in num_inscripciones_usadas:# se itera en cada tupla retornada por ejecutar_consulta()
-            if no_Usado[0] == num_inscripcion and num_max_inscripcion2:# se compara la posicion sub0 de la tupla la cual esta siendo iterada..
+            if no_Usado[0] == num_inscripcion:# se compara la posicion sub0 de la tupla la cual esta siendo iterada..
                 num_inscripcion = num_max_inscripcion2 + 1##
             else: 
                 pass
@@ -484,18 +490,20 @@ class Inscripciones_2:
                         VALUES(?,?,?,?,?,?) """
         self.ejecutar_consulta(sql2,(num_inscripcion,id_alumno,fecha,codigo_curso,curso,horario))
         messagebox.showinfo("Guardar Inscripcion", "La inscripcion se guardo satisfactoriamente.")
-        self.limpiar_entrys('4')
-        self.limpiar_entrys('3')#limpia el entry num_inscripcion para que se actualice correctamente
-        self.num_Inscripcion.insert(0,num_inscripcion) 
+        self.limpiar_entrys('inscripcion_S')
+        self.cmbx_Num_Inscripcion_()
+        self.limpiar_entrys('actualizar_num_inscripcion')#limpia el entry num_inscripcion para que se actualice correctamente
+        self.cmbx_Num_Inscripcion.insert(0,num_inscripcion) 
         
     def guardar_Mismo_No_Inscripcion_Tabla_Inscritos(self,num_inscripcion_existente,id_alumno,fecha,codigo_curso,curso,horario):
         sql3 = f""" INSERT INTO Inscritos(No_Inscripcion,Id_Alumno,Fecha_Inscripcion,Codigo_Curso,Curso,Horario)
                         VALUES(?,?,?,?,?,?) """
         self.ejecutar_consulta(sql3,(num_inscripcion_existente[0][0],id_alumno,fecha,codigo_curso,curso,horario)) #[(2,)] se extrae el num_inscripcion
         messagebox.showinfo("Guardar Inscripcion", "La inscripcion se guardo satisfactoriamente.")
-        self.limpiar_entrys('4')
-        self.limpiar_entrys('3')#limpia el entry num_inscripcion para que se actualice correctamente
-        self.num_Inscripcion.insert(0,num_inscripcion_existente) 
+        self.limpiar_entrys('inscripcion_S')
+        self.cmbx_Num_Inscripcion_()
+        self.limpiar_entrys('actualizar_num_inscripcion')#limpia el entry num_inscripcion para que se actualice correctamente
+        self.cmbx_Num_Inscripcion.insert(0,num_inscripcion_existente) 
 
 #------------------------------------------------------------------------------------------------------------------------------------------
     #estudiar codigo del compañero***  
@@ -665,7 +673,7 @@ class Inscripciones_2:
                 #Intenta eliminar el alumno
                 sql = """DELETE FROM Inscritos WHERE Id_Alumno = ? AND Codigo_Curso = ?"""
                 self.ejecutar_consulta(sql,(id_alumno, codigo_curso))
-                self.limpiar_entrys('4')
+                self.limpiar_entrys('inscripcion_S')
                 self.cerrar_widget_eliminar()
                 messagebox.showinfo("Eliminacion Correcta","La inscripción al curso fue eliminada correctamente")
                 self.consultar()
@@ -679,13 +687,13 @@ class Inscripciones_2:
         id_alumno = self.cmbx_Id_Alumno.get()
         if id_alumno.strip() == "":
             messagebox.showerror("Campos incompletos", "Verifique que los campos id_alumno y id_curso no esten en blanco")
-            return
+            
         try: #Intenta eliminar el alumno
             sql = """DELETE FROM Inscritos WHERE Id_Alumno = ?"""
-            self.ejecutar_consulta(sql,(id_alumno,))
-            self.limpiar_entrys('4')
-            self.cerrar_widget_eliminar()
             self.obtener_No_Inscripcion_del_alumno(id_alumno)
+            self.ejecutar_consulta(sql,(id_alumno,))
+            self.limpiar_entrys('inscripcion_S')
+            self.cerrar_widget_eliminar()
             messagebox.showinfo("Eliminacion Correcta","Se han eliminado todos los cursos")
             self.consultar()
         except Exception  as e: #Si hay un error eliminando el alumno, lo muestra en pantalla
@@ -703,7 +711,7 @@ class Inscripciones_2:
         if no_Inscripcion_A_Eliminar:
             no_Inscripcion_A_Eliminar = no_Inscripcion_A_Eliminar[0][0]
             sql3 = "INSERT INTO Inscritos2(No_Inscripcion_Usado) VALUES(?)"
-            self.ejecutar_consulta(sql3,(id_alumno,))
+            self.ejecutar_consulta(sql3,(no_Inscripcion_A_Eliminar,))
 
     def cmbx_Num_Inscripcion_(self):
         sql = """SELECT DISTINCT No_Inscripcion FROM Inscritos ORDER BY No_Inscripcion DESC"""
@@ -730,7 +738,7 @@ class Inscripciones_2:
         self.limpiar_columnas_tView()
         self.tView_cols = (nuevas_columnas)
         self.tView_dcols = (nuevas_columnas)
-        self.tView.configure(columns=self.tView_cols,displaycolumns=self.tView_dcols)
+        self.tView.configure(columns=self.tView_cols,displaycolumns=self.tView_dcols) 
         #Recorre las columnas y asigna su nombre y tamaño 
         for col in self.tView_cols:
             self.tView.heading(col, anchor="w", text=(f'{col}'))
@@ -757,8 +765,8 @@ class Inscripciones_2:
         #Obtiene el numero de inscripcion
         inscripcion = self.num_Inscripcion.get()
         #busqueda en base al numero de inscripcion obtenido 
-        query = f"""SELECT * FROM Inscritos WHERE No_Inscripcion = {inscripcion} ORDER BY Codigo_Curso DESC"""
-        db_ColumnasCursos = self.ejecutar_consulta(query)
+        query = """SELECT * FROM Inscritos WHERE No_Inscripcion = ? ORDER BY Codigo_Curso DESC"""
+        db_ColumnasCursos = self.ejecutar_consulta(query,(inscripcion,))
 
         #Insertar los datos en la tabla de la pantalla
         for row in db_ColumnasCursos:
@@ -819,6 +827,7 @@ class Inscripciones_2:
                 self.desbloquear_campos(self.id_Curso,self.descripc_Curso)
                 self.editando = False
                 messagebox.showinfo("Edicion Correcta", "El curso se ha editado correctamente")
+                self.limpiar_entrys('inscripcion_S')
                 self.consultar()
             except:
                 messagebox.showerror("Error de Edicion", "Error editando el curso, intente mas tarde")
