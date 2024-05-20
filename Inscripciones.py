@@ -82,15 +82,16 @@ class Inscripciones_2:
         #Entry de Descripción del Curso 
         self.descripc_Curso = ttk.Entry(self.frm_1, name="descripc_curso")
         self.descripc_Curso.configure(justify="left", width=166)
-        self.descripc_Curso.place(anchor="nw", width=300, x=325, y=185)
+        self.descripc_Curso.place(anchor="nw", width=260, x=325, y=185)
         #Label Horario
         self.lblHorario = ttk.Label(self.frm_1, name="label3")
         self.lblHorario.configure(background="#f7f9fd",state="normal",text='Horario:')
         self.lblHorario.place(anchor="nw", x=635, y=185)
+        self.lblHorario.place(anchor="nw", width = 100, x=620, y=185)
         #Entry del Horario
-        self.horario = ttk.Entry(self.frm_1, name="entry3")
-        self.horario.configure(justify="left", width=166)
-        self.horario.place(anchor="nw", width=100, x=680, y=185)
+        #self.horario = ttk.Entry(self.frm_1, name="entry3")
+        #self.horario.configure(justify="left", width=166)
+        #self.horario.place(anchor="nw", width=100, x=680, y=185)
 
         ''' Botones  de la Aplicación'''
         style = ttk.Style()
@@ -155,7 +156,7 @@ class Inscripciones_2:
         self.mainwindow = self.win
        
 
-        #Combobox Alumno
+        #Combobox Alumno-----------------
         self.cmbx_Id_Alumno = ttk.Combobox(self.frm_1, name="cmbx_id_alumno")
         self.cmbx_Id_Alumno.place(anchor="nw", width=112, x=100, y=80)
         
@@ -167,6 +168,13 @@ class Inscripciones_2:
         self.cmbx_Num_Inscripcion = ttk.Combobox(self.frm_1, name="cmbx_Num_Inscripcion") #ese name para que es?
         self.cmbx_Num_Inscripcion.place(anchor="nw", width=100, x=682, y=42) # en este caso se especifica el mismo width del entry num_inscripcion 
         self.cmbx_Num_Inscripcion_()
+        
+        #combobox horarios
+        self.horarios = ['07 AM - 09 AM','09 AM - 11 AM','11 AM - 01 PM','01 PM - 03 AM',
+                         '03 AM - 05 AM','05 PM - 07 PM','08 AM - 10 AM','10 AM - 12 PM',
+                         '02 PM - 04 PM','04 PM - 06 PM']
+        self.cmbx_Horario = ttk.Combobox(self.frm_1, name ="cmbx_horario", values = self.horarios)
+        self.cmbx_Horario.place(anchor="nw", width = 115, x=675, y=185)
         
     
 
@@ -298,6 +306,15 @@ class Inscripciones_2:
         else:
             self.cmbx_Id_Alumno['values'] = []
 
+    def cmbx_Num_Inscripcion_(self):
+        sql = """SELECT DISTINCT No_Inscripcion FROM Inscritos ORDER BY No_Inscripcion DESC"""
+        resultado = self.ejecutar_consulta(sql)
+        self.cmbx_Num_Inscripcion.delete(0, 'end')
+        if resultado:
+            self.cmbx_Num_Inscripcion['values'] = [row[0] for row in resultado]
+        else:
+            self.cmbx_Num_Inscripcion['values'] = []
+
     def limpiar_entrys(self,opcion):
         
         #-----------------------------------------------------
@@ -352,19 +369,6 @@ class Inscripciones_2:
                 self.cmbx_Num_Inscripcion.insert(0, num_inscripcion_existente)
             else:
                 self.limpiar_entrys('actualizar_num_inscripcion')
-        else:
-            self.nombres.config(state='normal')
-            self.apellidos.config(state='normal')
-            self.limpiar_entrys('nombres,apellidos')
-            self.limpiar_entrys('actualizar_num_inscripcion')
-            
-            
-
-        
-        
-        
-        
-
     
 
     def centrar_win(self):
@@ -713,14 +717,6 @@ class Inscripciones_2:
             sql3 = "INSERT INTO Inscritos2(No_Inscripcion_Usado) VALUES(?)"
             self.ejecutar_consulta(sql3,(no_Inscripcion_A_Eliminar,))
 
-    def cmbx_Num_Inscripcion_(self):
-        sql = """SELECT DISTINCT No_Inscripcion FROM Inscritos ORDER BY No_Inscripcion DESC"""
-        resultado = self.ejecutar_consulta(sql)
-        self.cmbx_Num_Inscripcion.delete(0, 'end')
-        if resultado:
-            self.cmbx_Num_Inscripcion['values'] = [row[0] for row in resultado]
-        else:
-            self.cmbx_Num_Inscripcion['values'] = []
             
 #----------------------------------------------------------------------------------------------------------------------------------------------------
     #Función para vaciar el treeview
@@ -865,6 +861,13 @@ class Inscripciones_2:
         self.limpiar_columnas_tView()
         self.columnas_cursos(col_cursos)
         self.mostrar_Cursos()
+        self.nombres.config(state='normal')
+        self.apellidos.config(state='normal')
+
+        entry_list = [self.fecha, self.nombres, self.apellidos, self.id_Curso, self.descripc_Curso, self.cmbx_Horario, self.cmbx_Num_Inscripcion,self.cmbx_Id_Alumno]
+
+        for entry in entry_list:
+            entry.delete(0, 'end')
 
 
 
