@@ -283,6 +283,8 @@ class Inscripciones_2:
             Codigo_Curso VARCHAR(20) NOT NULL,
             Curso VARCHAR(60),
             Horario VARCHAR(20),
+            Nombres VARCHAR(50),
+            Apellidos VARCHAR(50),
             PRIMARY KEY(No_Inscripcion,Id_Alumno,Codigo_Curso))"""
         self.ejecutar_consulta(sql)#(Id_Alumno,Fecha_Inscripcion,Codigo_Curso,Curso,Horario)
         
@@ -794,28 +796,21 @@ class Inscripciones_2:
             self.tView.heading(col, anchor="w", text=(f'{col}'))
             self.tView.column(col,anchor='w',stretch=True,width=217,minwidth=217)
 
-#------------------------------------------------------------------------------------------------------------------------------------------------------
-    #Función para rellenar los campos con los valores de los inscritos 
-    """def mostrar_info_inscritos(self,event):
+    def llenar_info_consultar(self):
+        query = """SELECT id_Alumno FROM Inscritos WHERE No_Inscripcion = ?"""
+        inscripcion = self.cmbx_Num_Inscripcion.get()
+        info = self.ejecutar_consulta(query,(inscripcion,))
+        self.cmbx_Id_Alumno.insert(0, info)
         
-        # Obtener el índice seleccionado
-        if self.tView.selection():
-            selected_item = self.tView.selection()[0]
-            # Obtener los valores de la fila seleccionada
-            # Rellenar los campos de entrada
-            self.id_Curso.delete(0, 'end')
-            self.id_Curso.insert(0, self.tView.item(selected_item)['text'])  
-            self.descripc_Curso.delete(0, 'end')
-            self.descripc_Curso.insert(0, self.tView.item(selected_item)['values'][2])
-            self.cmbx_Horario.delete(0,'end')
-            self.cmbx_Horario.insert(0,self.tView.item(selected_item)['values'][-1])"""
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------
     #Función del boton consultar
     def consultar(self):
         
         
-        
+        self.llenar_info_consultar()
+        id_alumno = self.cmbx_Id_Alumno.get()
+        self.mostrar_info_alumno_Treewvew_cmbx(id_alumno)
         #Seleccionar los datos de la BD
         #Obtiene el numero de inscripcion
         inscripcion = self.cmbx_Num_Inscripcion.get()
