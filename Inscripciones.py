@@ -215,8 +215,10 @@ class Inscripciones_2:
         self.fecha.bind("<FocusOut>", self.validar_fecha) #Cuando se cliquea fuera del recuadro de fecha se valida que esta tenga el formato correcto***
         
         #-----------------------------------------------
-        self.validar_Tview()
-    
+        
+        self.tView.bind("<<TreeviewSelect>>", self.mostrar_info_cursos)
+
+
 
 
 
@@ -527,7 +529,7 @@ class Inscripciones_2:
             print(row)          
     
     def mostrar_info_cursos(self,event):
-        self.validar_Tview()
+        
         # Obtener el índice seleccionad
         num_columnas = len(self.tView.get_children())
         if num_columnas < 3:
@@ -794,8 +796,8 @@ class Inscripciones_2:
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------
     #Función para rellenar los campos con los valores de los inscritos 
-    def mostrar_info_inscritos(self,event):
-        self.validar_Tview()
+    """def mostrar_info_inscritos(self,event):
+        
         # Obtener el índice seleccionado
         if self.tView.selection():
             selected_item = self.tView.selection()[0]
@@ -806,12 +808,12 @@ class Inscripciones_2:
             self.descripc_Curso.delete(0, 'end')
             self.descripc_Curso.insert(0, self.tView.item(selected_item)['values'][2])
             self.cmbx_Horario.delete(0,'end')
-            self.cmbx_Horario.insert(0,self.tView.item(selected_item)['values'][-1])
+            self.cmbx_Horario.insert(0,self.tView.item(selected_item)['values'][-1])"""
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------
     #Función del boton consultar
     def consultar(self):
-        self.validar_Tview()
+        
         
         
         #Seleccionar los datos de la BD
@@ -851,18 +853,12 @@ class Inscripciones_2:
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------
     #Función para validar que funcion debe ser usada segun la cantidad de columnas
-    def validar_Tview(self):
-        num_columnas = len(self.tView.get_children())
-        if num_columnas > 3:
-            self.tView.bind("<<TreeviewSelect>>", self.mostrar_info_inscritos)
-
-        else: 
-            self.tView.bind("<<TreeviewSelect>>", self.mostrar_info_cursos)
+    
      
 #------------------------------------------------------------------------------------------------------------------------------------------------------
     #Función del botón editar
     def editar_curso(self):
-        self.validar_Tview()
+        
         id_alumno = self.cmbx_Id_Alumno.get()
         id_curso = self.id_Curso.get()
         descripc_Curso = self.descripc_Curso.get()
