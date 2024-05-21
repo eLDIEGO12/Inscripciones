@@ -283,8 +283,6 @@ class Inscripciones_2:
             Codigo_Curso VARCHAR(20) NOT NULL,
             Curso VARCHAR(60),
             Horario VARCHAR(20),
-            Nombres VARCHAR(50),
-            Apellidos VARCHAR(50),
             PRIMARY KEY(No_Inscripcion,Id_Alumno,Codigo_Curso))"""
         self.ejecutar_consulta(sql)#(Id_Alumno,Fecha_Inscripcion,Codigo_Curso,Curso,Horario)
         
