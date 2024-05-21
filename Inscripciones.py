@@ -524,51 +524,38 @@ class Inscripciones_2:
         #Insertar los datos en la tabla de la pantalla
         for row in db_ColumnasCursos:
             self.tView.insert('',0,text= row[0],values = [row[1],row[2]])
-            print(row)
-
-    def mostrar_info_cursos_Select(self,opcion):#--------------------------------
-        self.id_Curso.configure(state="normal")
-        self.descripc_Curso.configure(state="normal")
-        self.id_Curso.delete(0, 'end')
-        self.cmbx_Horario.delete(0, 'end')
-        self.descripc_Curso.delete(0, 'end')
-        if self.tView.selection() and opcion == 0 :
-            selected_item = self.tView.selection()[0]
-            # Obtener los valores de la fila seleccionada
-            # Rellenar los campos de entrada
-            self.id_Curso.config(state="normal")#-----------
-            self.id_Curso.insert(0, self.tView.item(selected_item)['text'])  
-            self.descripc_Curso.config(state="normal")
-            self.descripc_Curso.insert(0, self.tView.item(selected_item)['values'][1])
-            self.descripc_Curso.config(state="disabled")
-            self.cmbx_Horario.insert(0, self.tView.item(selected_item)['values'][-1])
-
-
-        if self.tView.selection() and  opcion == 1 :
+            print(row)          
+    
+    def mostrar_info_cursos(self,event):
+        self.validar_Tview()
+        # Obtener el índice seleccionad
+        num_columnas = len(self.tView.get_children())
+        if num_columnas < 3:
+            if self.tView.selection():
                 selected_item = self.tView.selection()[0]
                 # Obtener los valores de la fila seleccionada
                 # Rellenar los campos de entrada
-                self.id_Curso.config(state="normal")#-----------
+                self.mostrar_fecha()
+                self.id_Curso.delete(0, 'end')
                 self.id_Curso.insert(0, self.tView.item(selected_item)['text'])  
-                self.descripc_Curso.config(state="normal")
+                self.descripc_Curso.delete(0, 'end')
                 self.descripc_Curso.insert(0, self.tView.item(selected_item)['values'][1])
-                self.descripc_Curso.config(state="disabled")
+                self.cmbx_Horario.delete(0, 'end')
+                self.cmbx_Horario.insert(0, self.tView.item(selected_item)['values'][-1]) 
+        else:
+            if self.tView.selection():
+                selected_item = self.tView.selection()[0]
+                # Obtener los valores de la fila seleccionada
+                # Rellenar los campos de entrada
+                self.mostrar_fecha()
+                self.id_Curso.delete(0, 'end')
+                self.id_Curso.insert(0, self.tView.item(selected_item)['text'])  
+                self.descripc_Curso.delete(0, 'end')
+                self.descripc_Curso.insert(0, self.tView.item(selected_item)['values'][0])
+                self.cmbx_Horario.delete(0, 'end')
                 self.cmbx_Horario.insert(0, self.tView.item(selected_item)['values'][-1])
-                
-    
-    def mostrar_info_cursos(self,event):
-        # Obtener el índice seleccionado
-        if self.tView.selection():
-            selected_item = self.tView.selection()[0]
-            # Obtener los valores de la fila seleccionada
-            # Rellenar los campos de entrada
-            self.mostrar_fecha()
-            self.id_Curso.delete(0, 'end')
-            self.id_Curso.insert(0, self.tView.item(selected_item)['text'])  
-            self.descripc_Curso.delete(0, 'end')
-            self.descripc_Curso.insert(0, self.tView.item(selected_item)['values'][0])
-            self.cmbx_Horario.delete(0, 'end')
-            self.cmbx_Horario.insert(0, self.tView.item(selected_item)['values'][-1]) 
+
+
         
     
     def validar_entry(self,funcion):
@@ -808,6 +795,7 @@ class Inscripciones_2:
 #------------------------------------------------------------------------------------------------------------------------------------------------------
     #Función para rellenar los campos con los valores de los inscritos 
     def mostrar_info_inscritos(self,event):
+        self.validar_Tview()
         # Obtener el índice seleccionado
         if self.tView.selection():
             selected_item = self.tView.selection()[0]
@@ -816,9 +804,9 @@ class Inscripciones_2:
             self.id_Curso.delete(0, 'end')
             self.id_Curso.insert(0, self.tView.item(selected_item)['text'])  
             self.descripc_Curso.delete(0, 'end')
-            self.descripc_Curso.insert(0, self.tView.item(selected_item)['values'][1])
+            self.descripc_Curso.insert(0, self.tView.item(selected_item)['values'][2])
             self.cmbx_Horario.delete(0,'end')
-            self.cmbx_Horario.insert(0,self.tView.item(selected_item)['values'][2])
+            self.cmbx_Horario.insert(0,self.tView.item(selected_item)['values'][-1])
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------
     #Función del boton consultar
