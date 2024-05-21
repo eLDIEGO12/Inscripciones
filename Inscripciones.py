@@ -155,6 +155,13 @@ class Inscripciones_2:
 
         # Main widget
         self.mainwindow = self.win
+        #EJECUTAR 
+
+        self.tabla_alumnos()
+        self.tabla_carreras()
+        self.tabla_cursos()
+        self.tabla_inscritos()
+        self.tabla_inscritos2()
        
 
         #Combobox Alumno-----------------
@@ -182,17 +189,11 @@ class Inscripciones_2:
         #centrar ventana principal
         self.centrar_win()
 
-        #EJECUTAR 
-
-        self.tabla_alumnos()
-        self.tabla_carreras()
-        self.tabla_cursos()
-        self.tabla_inscritos()
-        self.tabla_inscritos2()
+        
         
 
         #-----------------------------------------------------
-        self.mostrar_Cursos()#codigo compañero
+        self.mostrar_Cursos()
 
         #--------------------------------------------------
         self.cargar_combobox()
@@ -272,7 +273,8 @@ class Inscripciones_2:
             Codigo_Curso ,
             Descrip_Curso,
             Num_Horas)
-            VALUES('100b','ESTRUCTURA','07 AM - 09 AM'),('100','TGS','11 AM - 1 PM'),('129','CÁLCULO','4 PM - 6 PM')""" # descrip_curso despues de una cantidad de caracteres mas de 20 se agrega {}, no se por que jaja
+            VALUES('100b','ESTRUCTURA','07 AM - 09 AM'),('100','TGS','11 AM - 1 PM'),('129','CÁLCULO','4 PM - 6 PM'),('200','POO','4 PM - 6 PM'),
+            ('300','FISICA','7 PM - 9 PM'),('400','QUIMICA','7 PM - 9 PM')""" # descrip_curso despues de una cantidad de caracteres mas de 20 se agrega {}, no se por que jaja
         self.ejecutar_consulta(sql2)
         
     def tabla_inscritos(self):#un punto puede generar error
@@ -283,6 +285,8 @@ class Inscripciones_2:
             Codigo_Curso VARCHAR(20) NOT NULL,
             Curso VARCHAR(60),
             Horario VARCHAR(20),
+            Nombres VARCHAR(50),
+            Apellidos VARCHAR(50),
             PRIMARY KEY(No_Inscripcion,Id_Alumno,Codigo_Curso))"""
         self.ejecutar_consulta(sql)#(Id_Alumno,Fecha_Inscripcion,Codigo_Curso,Curso,Horario)
         
@@ -339,6 +343,8 @@ class Inscripciones_2:
             self.cmbx_Horario.delete(0,'end')
         #------------------------------------------------------
         elif opcion == 'nombres,apellidos':
+            self.nombres.config(state='normal')
+            self.apellidos.config(state='normal')
             self.apellidos.delete(0,'end') 
             self.nombres.delete(0,'end')
 
@@ -347,6 +353,7 @@ class Inscripciones_2:
             sql =f"""SELECT Nombres,Apellidos FROM Alumnos WHERE id_Alumno = ?"""
             info_alumno = self.ejecutar_consulta(sql,(id_alumno,)) # el ejecutar_consulta,fetchall retorna una lista de  tuplas, es decir info_alumno contiene = [(Nombres,Apellidos)]
             #funcion que limpie los campos- se usa .config(state='normal') porque existe la probabilidad de que los campos nombres,apellidos estén disponibles. 
+            
             self.nombres.config(state='normal')
             self.apellidos.config(state='normal')
             self.limpiar_entrys('nombres,apellidos')
@@ -359,18 +366,13 @@ class Inscripciones_2:
                 self.apellidos.insert(0, apellidos)  # Insertar el apellido en el Entry "apellidos"
                 self.nombres.config(state='disabled')
                 self.apellidos.config(state='disabled')
+                
 
 
     def mostrar_info_alumno(self,event ): 
         id_alumno = self.cmbx_Id_Alumno.get()
         self.mostrar_info_alumno_Treewvew_cmbx(id_alumno)
-         
         
-       
-        
-       
-    
-
     def centrar_win(self):
         self.mainwindow.update_idletasks()#indagar mas sobre this
         width = self.mainwindow.winfo_width()
@@ -458,7 +460,7 @@ class Inscripciones_2:
             messagebox.showerror("Guardar Inscripcion", "Por favor complete todos los campos.")
 
     def validar_campos_completos(self,id_alumno,fecha,codigo_curso,):
-        if id_alumno and fecha != "" and codigo_curso :
+        if id_alumno and fecha != "dd/mm/aaaa" and codigo_curso :
             return True
         else:
             return False
@@ -470,7 +472,7 @@ class Inscripciones_2:
 
         sql = f""" SELECT Codigo_Curso FROM Inscritos WHERE Id_Alumno = ? """
         info_inscripciones = self.ejecutar_consulta(sql,(id_alumno,)) #[(None,)] , [(100b,),(100,)]
-        #print(info_inscripciones)
+        
         
         for curso in info_inscripciones:# se itera en cada tupla retornada por ejecutar_consulta()
             if curso[0] == codigo_curso: # se compara la posicion sub0 de la tupla la cual esta siendo iterada
@@ -510,7 +512,7 @@ class Inscripciones_2:
         self.cmbx_Num_Inscripcion.insert(0,num_inscripcion_existente) 
 
 #------------------------------------------------------------------------------------------------------------------------------------------
-    #estudiar codigo del compañero***  
+      
     def limpia_TreeView(self):
          tabla = self.tView.get_children()
          for element in tabla:
@@ -526,7 +528,7 @@ class Inscripciones_2:
         #Insertar los datos en la tabla de la pantalla
         for row in db_ColumnasCursos:
             self.tView.insert('',0,text= row[0],values = [row[1],row[2]])
-            print(row)          
+                     
     
     def mostrar_info_cursos(self,event):
         
@@ -537,7 +539,7 @@ class Inscripciones_2:
                 selected_item = self.tView.selection()[0]
                 # Obtener los valores de la fila seleccionada
                 # Rellenar los campos de entrada
-                self.mostrar_fecha()
+                
                 self.id_Curso.delete(0, 'end')
                 self.id_Curso.insert(0, self.tView.item(selected_item)['text'])  
                 self.descripc_Curso.delete(0, 'end')
@@ -549,7 +551,7 @@ class Inscripciones_2:
                 selected_item = self.tView.selection()[0]
                 # Obtener los valores de la fila seleccionada
                 # Rellenar los campos de entrada
-                self.mostrar_fecha()
+                
                 self.id_Curso.delete(0, 'end')
                 self.id_Curso.insert(0, self.tView.item(selected_item)['text'])  
                 self.descripc_Curso.delete(0, 'end')
@@ -572,7 +574,7 @@ class Inscripciones_2:
             self.tView.insert('',0,text= nuevo_curso[0],values = [nuevo_curso[1],nuevo_curso[2]])
             
 #------------------------------------------------------------------------------------------------------------------------------------------   
-    #estudiar codigo de compañero***
+    
     #Funciones para el entry fecha
     def borrar_fecha(self, event):
         self.fecha.delete(0, 'end')
@@ -627,12 +629,13 @@ class Inscripciones_2:
     
     def autoformateo_de_fecha(self, event):
         fecha = self.fecha.get()
-        if fecha[-1] == " ":
-            self.fecha.delete(len(fecha)-1, 'end')
-        if len(fecha) == 2 or len(fecha) == 5:
-            self.fecha.insert(len(fecha),"/")
-        if len(fecha) >= 10:
-            self.fecha.delete(10,'end')
+        if fecha:
+            if fecha[-1] == " ":
+                self.fecha.delete(len(fecha)-1, 'end')
+            if len(fecha) == 2 or len(fecha) == 5:
+                self.fecha.insert(len(fecha),"/")
+            if len(fecha) >= 10:
+                self.fecha.delete(10,'end')
     
 #------------------------------------------------------------------------------------------------------------------------------------------
     #Funciones para el Boton Eliminar
@@ -686,31 +689,40 @@ class Inscripciones_2:
             self.eliminar_registro()
         else:
             messagebox.showerror("Error al Eliminar", "Debe seleccionar al menos una opcion")
+            self.cerrar_widget_eliminar()
 
     def eliminar_curso(self):
         id_alumno = self.cmbx_Id_Alumno.get()
-        codigo_curso = self.id_Curso.get()
+        codigo_curso = self.id_Curso.get().strip()
         #Verifica que los datos esten completos
-        
         #si se selecciona un curso en el treeview
-        if codigo_curso is not None: 
+        if codigo_curso != "": 
             
             #Intenta eliminar el alumno
             sql = """DELETE FROM Inscritos WHERE Id_Alumno = ? AND Codigo_Curso = ?"""
             self.obtener_No_Inscripcion_del_alumno(id_alumno)
 
             try:
+                existencia = """SELECT * FROM Inscritos WHERE Id_Alumno = ? AND Codigo_Curso = ?"""
+                if(self.ejecutar_consulta(existencia,(id_alumno, codigo_curso))) == []:
+                    messagebox.showerror("Error al eliminar", "El alumno no tiene una inscripción en este curso")
+                    self.cerrar_widget_eliminar()
+                    return
+
                 self.ejecutar_consulta(sql,(id_alumno, codigo_curso))
                 self.consultar()
             
             except Exception  as e: #Si hay un error eliminando el alumno, lo muestra en pantalla
                 messagebox.showerror("Error al eliminar", str(e))
+                self.cerrar_widget_eliminar()
+                return
 
             self.limpiar_entrys('inscripcion_S')
             self.cerrar_widget_eliminar()
             messagebox.showinfo("Eliminacion Correcta","La inscripción al curso fue eliminada correctamente")
         else: #El alumno no esta inscrito en el curso
             messagebox.showerror("Error al eliminar", "El alumno no ha seleccionado ningun curso")
+            self.cerrar_widget_eliminar()
 
 
 
@@ -757,20 +769,6 @@ class Inscripciones_2:
                 # Insertar el número de inscripción a eliminar en Inscritos2
                 sql3 = """INSERT INTO Inscritos2(No_Inscripcion_Usado) VALUES(?)"""
                 self.ejecutar_consulta(sql3, (no_Inscripcion_A_Eliminar,))
-
-
-    def mostrar_fecha(self):
-        query = """SELECT Fecha_Inscripcion FROM Inscritos WHERE No_Inscripcion = ? LIMIT 1"""
-        inscripcion = self.cmbx_Num_Inscripcion.get()
-        fecha = self.ejecutar_consulta(query,(inscripcion,))
-        self.fecha.delete(0,'end')
-        self.fecha.insert(0,fecha)
-
-                
-                
-                
-
-
             
 #----------------------------------------------------------------------------------------------------------------------------------------------------
     #Función para vaciar el treeview
@@ -795,10 +793,12 @@ class Inscripciones_2:
             self.tView.column(col,anchor='w',stretch=True,width=217,minwidth=217)
 
     def llenar_info_consultar(self):
-        query = """SELECT id_Alumno FROM Inscritos WHERE No_Inscripcion = ?"""
+        query = """SELECT id_Alumno FROM Inscritos WHERE No_Inscripcion = ? LIMIT 1"""
         inscripcion = self.cmbx_Num_Inscripcion.get()
         info = self.ejecutar_consulta(query,(inscripcion,))
+        self.cmbx_Id_Alumno.delete(0,'end')
         self.cmbx_Id_Alumno.insert(0, info)
+        self.cmbx_Id_Alumno.configure(state="disabled")
         
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -828,7 +828,7 @@ class Inscripciones_2:
                 if self.db_ColumnasCursos:
                     for row in self.db_ColumnasCursos:
                         self.tView.insert('',0,text= row[3],values = [row[1],row[4],row[5]])
-                        print(row)
+                        
                  
             else:
                 messagebox.showerror("Error al consultar","Indique el numero de inscripcion")
@@ -837,10 +837,13 @@ class Inscripciones_2:
                 self.columnas_cursos(col_cursos)
                 self.mostrar_Cursos()
         else:
-            messagebox.showerror("Error al consultar", "No hay ningún inscrito")
+            self.limpiar_entrys("nombres,apellidos")
+            self.cmbx_Id_Alumno.configure(state="normal")
+            self.cmbx_Id_Alumno.delete(0,'end')
             col_cursos = ['Descripción','Numero de horas']
             self.limpiar_columnas_tView()
             self.columnas_cursos(col_cursos)
+            
             self.mostrar_Cursos()
             
 
@@ -928,35 +931,6 @@ class Inscripciones_2:
         inscripcion = self.ejecutar_consulta(sql,(id_alumno,))
         self.cmbx_Num_Inscripcion.delete(0,'end')
         self.cmbx_Num_Inscripcion.insert(0,inscripcion)
-
-
-
-
-
-
-        
-            
-                
-
-        
-            
-
-                
-            
-            
-
-
-        
-
-
-
-
-
-        
-
-
-
-
        
     def run(self):
         self.mainwindow.mainloop()
