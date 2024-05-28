@@ -477,8 +477,8 @@ class Inscripciones_2:
         for curso in info_inscripciones:# se itera en cada tupla retornada por ejecutar_consulta()
             if curso[0] == codigo_curso: # se compara la posicion sub0 de la tupla la cual esta siendo iterada
              return True  # El alumno ya está inscrito en este curso
-            else:
-                return False  # El alumno no está inscrito en este curso
+            
+        return False  # El alumno no está inscrito en este curso
 
     def validar_No_Usado(self,num_max_inscripcion2,num_inscripcion):
         sql3= """SELECT No_Inscripcion_Usado FROM Inscritos2"""
@@ -533,8 +533,8 @@ class Inscripciones_2:
     def mostrar_info_cursos(self,event):
         
         # Obtener el índice seleccionad
-        num_columnas = len(self.tView.get_children())
-        if num_columnas < 3:
+        num_columnas = len(self.tView['column']) #antes estaba len(self.tView.get_children()), lo cual no permitia saber cuantas columnas tiene la tabla,sino cuantas filas
+        if num_columnas == 2:
             if self.tView.selection():
                 selected_item = self.tView.selection()[0]
                 # Obtener los valores de la fila seleccionada
@@ -543,7 +543,7 @@ class Inscripciones_2:
                 self.id_Curso.delete(0, 'end')
                 self.id_Curso.insert(0, self.tView.item(selected_item)['text'])  
                 self.descripc_Curso.delete(0, 'end')
-                self.descripc_Curso.insert(0, self.tView.item(selected_item)['values'][1])
+                self.descripc_Curso.insert(0, self.tView.item(selected_item)['values'][0])#estaba en 1
                 self.cmbx_Horario.delete(0, 'end')
                 self.cmbx_Horario.insert(0, self.tView.item(selected_item)['values'][-1]) 
         else:
@@ -555,7 +555,7 @@ class Inscripciones_2:
                 self.id_Curso.delete(0, 'end')
                 self.id_Curso.insert(0, self.tView.item(selected_item)['text'])  
                 self.descripc_Curso.delete(0, 'end')
-                self.descripc_Curso.insert(0, self.tView.item(selected_item)['values'][0])
+                self.descripc_Curso.insert(0, self.tView.item(selected_item)['values'][1])#estaba en 0
                 self.cmbx_Horario.delete(0, 'end')
                 self.cmbx_Horario.insert(0, self.tView.item(selected_item)['values'][-1])
 
@@ -710,7 +710,8 @@ class Inscripciones_2:
                     return
 
                 self.ejecutar_consulta(sql,(id_alumno, codigo_curso))
-                self.consultar()
+                self.consultar('Eliminar curso ultimo') # 
+        
             
             except Exception  as e: #Si hay un error eliminando el alumno, lo muestra en pantalla
                 messagebox.showerror("Error al eliminar", str(e))
@@ -796,6 +797,7 @@ class Inscripciones_2:
         query = """SELECT id_Alumno FROM Inscritos WHERE No_Inscripcion = ? LIMIT 1"""
         inscripcion = self.cmbx_Num_Inscripcion.get()
         info = self.ejecutar_consulta(query,(inscripcion,))
+        self.cmbx_Id_Alumno.configure(state="normal")# antes de realizar cualquier operacion con el cmbx_Id_Alumno, se debe habilitar.---------nuevo
         self.cmbx_Id_Alumno.delete(0,'end')
         self.cmbx_Id_Alumno.insert(0, info)
         self.cmbx_Id_Alumno.configure(state="disabled")
@@ -803,7 +805,7 @@ class Inscripciones_2:
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------
     #Función del boton consultar
-    def consultar(self):
+    def consultar(self,opcion = None ):
         
         
         self.llenar_info_consultar()
@@ -814,29 +816,54 @@ class Inscripciones_2:
         inscripcion = self.cmbx_Num_Inscripcion.get()
         #busqueda en base al numero de inscripcion obtenido 
         query = """SELECT * FROM Inscritos WHERE No_Inscripcion = ? ORDER BY Codigo_Curso DESC"""
-        self.db_ColumnasCursos = self.ejecutar_consulta(query,(inscripcion,))
+        db_ColumnasCursos = self.ejecutar_consulta(query,(inscripcion,))
         query2 = """SELECT * FROM INSCRITOS"""
         validar_inscritos = self.ejecutar_consulta(query2)
+        
+        
         #Insertar los datos en la tabla de la pantalla
+       
         if validar_inscritos: 
             
         
-            if self.cmbx_Num_Inscripcion.get():
-                self.limpia_TreeView()
-                columas_inscritos=('ID del estudiante','Curso','Horario')
-                self.columnas_consultar(columas_inscritos)
-                if self.db_ColumnasCursos:
-                    for row in self.db_ColumnasCursos:
+            if inscripcion:#----nuevo
+                if db_ColumnasCursos:
+                    self.limpia_TreeView()
+                    columas_inscritos=('ID del estudiante','Curso','Horario')
+                    self.columnas_consultar(columas_inscritos)
+                    for row in db_ColumnasCursos:
                         self.tView.insert('',0,text= row[3],values = [row[1],row[4],row[5]])
+
+            
+            #si el alumno elimina el unico curso que tiene con la opcion "borrar curso" del boton eliminar, pero validar_inscritos devuelve algo diferente a [vacio],(primer if)-----nuevo 
+            elif opcion == 'Eliminar curso ultimo':
+                self.cmbx_Num_Inscripcion_()
+                self.cancelar()
+
+
+
+                
                         
                  
             else:
-                messagebox.showerror("Error al consultar","Indique el numero de inscripcion")
+                messagebox.showerror("Error al consultar","El No. de Inscripción no existe O digite un No. de Inscripcion.")
+                self.cmbx_Id_Alumno.configure(state="normal")# cuando se consultaba y no se encontraba el No. de Inscripcion el campo Id_Alumno se dehabilitó,se procede a habilitar el campo Id_Alumno----nuevo
                 col_cursos = ['Descripción','Numero de horas']
                 self.limpiar_columnas_tView()
                 self.columnas_cursos(col_cursos)
                 self.mostrar_Cursos()
+
+        elif opcion == 'Eliminar curso ultimo':#si el alumno elimina el unico curso que tiene con la opcion "borrar curso" del boton eliminar -----nuevo 
+            
+            self.cmbx_Num_Inscripcion_()
+            self.cancelar()
+
+        
         else:
+            
+            
+            
+            messagebox.showerror("Error al consultar","No existen inscripciones, cree una nueva inscripción.")
             self.limpiar_entrys("nombres,apellidos")
             self.cmbx_Id_Alumno.configure(state="normal")
             self.cmbx_Id_Alumno.delete(0,'end')
@@ -845,6 +872,13 @@ class Inscripciones_2:
             self.columnas_cursos(col_cursos)
             
             self.mostrar_Cursos()
+
+    
+
+
+        
+
+        
             
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -865,7 +899,7 @@ class Inscripciones_2:
             #self.consultar()
             return
         
-        if not self.validar_doble_inscripcion(id_alumno, id_curso): 
+        if not self.validar_doble_inscripcion(id_alumno, id_curso):# devuelve False cuando el estudiante no tiene this materia inscrita(condicion para editar una materia que si tenga)
             messagebox.showerror("Error al Editar","No puede editar un curso al que no pertenece")
             self.limpiar_entrys('inscripcion_S')
             return
